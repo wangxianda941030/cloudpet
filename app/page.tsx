@@ -109,14 +109,15 @@ export default function Home() {
 
       <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="云崽服务器桌面宠物">
         <header className="widget-bar">
-          <div><span className="tiny-logo">♡</span><b>塔菲云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
+          <div><span className="tiny-logo">●</span><b>奶龙云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
           <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭云崽" onClick={closeWindow}>×</button></div>
         </header>
 
         <div className="pet-stage">
           <div className="speech"><b>{mood.title}</b><span>{mood.message}</span></div>
-          <button className="pet taffy-pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击塔菲查看服务器状态">
-            <Image className="taffy-sprite" src="/taffy-pet.png" width={205} height={205} alt="Q版永雏塔菲桌面宠物" draggable={false} priority unoptimized />
+          <button className="pet nailong-pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击奶龙查看服务器状态">
+            <Image className="nailong-sprite nailong-idle" src="/nailong-idle.png" width={205} height={205} alt="像素奶龙桌面宠物" draggable={false} priority unoptimized />
+            <Image className="nailong-sprite nailong-laugh" src="/nailong-laugh.png" width={205} height={205} alt="捧腹大笑的像素奶龙" draggable={false} priority unoptimized />
             {mood.id === "busy" && <i className="sweat">◜</i>}
             {mood.id === "danger" && <i className="alert">!</i>}
             {mood.id === "offline" && <i className="sleepy">zZ</i>}
