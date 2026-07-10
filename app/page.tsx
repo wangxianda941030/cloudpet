@@ -116,8 +116,8 @@ export default function Home() {
         <div className="pet-stage">
           <div className="speech"><b>{mood.title}</b><span>{mood.message}</span></div>
           <button className="pet nailong-pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击奶龙查看服务器状态">
-            <Image className="nailong-sprite nailong-idle" src="/nailong-idle.png" width={205} height={205} alt="像素奶龙桌面宠物" draggable={false} priority unoptimized />
-            <Image className="nailong-sprite nailong-laugh" src="/nailong-laugh.png" width={205} height={205} alt="捧腹大笑的像素奶龙" draggable={false} priority unoptimized />
+            <Image className="nailong-sprite nailong-idle" src="/nailong-idle-v2.png" width={205} height={205} alt="像素奶龙桌面宠物" draggable={false} priority unoptimized />
+            <Image className="nailong-sprite nailong-laugh" src="/nailong-laugh-v2.png" width={205} height={205} alt="捧腹大笑的像素奶龙" draggable={false} priority unoptimized />
             {mood.id === "busy" && <i className="sweat">◜</i>}
             {mood.id === "danger" && <i className="alert">!</i>}
             {mood.id === "offline" && <i className="sleepy">zZ</i>}

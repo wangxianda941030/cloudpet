@@ -62,7 +62,7 @@ cd "$INSTALL_DIR"
 npm ci
 npm run build
 chown -R cloudy:cloudy "$INSTALL_DIR"
-APP_VERSION=$(sha256sum package-lock.json app/page.tsx collector/agent.py | sha256sum | awk '{print substr($1,1,12)}')
+APP_VERSION=$(sha256sum package-lock.json app/page.tsx app/globals.css collector/agent.py public/*.png | sha256sum | awk '{print substr($1,1,12)}')
 ACCESS_TOKEN=""
 if [ "${CLOUDY_ROTATE_TOKEN:-0}" != "1" ] && [ -f /etc/systemd/system/cloudy-web.service ]; then
   ACCESS_TOKEN=$(sed -n 's/^Environment=CLOUDY_ACCESS_TOKEN=//p' /etc/systemd/system/cloudy-web.service | head -n 1)
