@@ -122,7 +122,8 @@ sed -i "s/__CLOUDY_ACCESS_TOKEN__/$ACCESS_TOKEN/" /etc/systemd/system/cloudy-web
 sed -i "s/__CLOUDY_APP_VERSION__/$APP_VERSION/" /etc/systemd/system/cloudy-web.service
 
 systemctl daemon-reload
-systemctl enable --now cloudy-agent cloudy-web
+systemctl enable cloudy-agent cloudy-web
+systemctl restart cloudy-agent cloudy-web
 
 PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true)
