@@ -1,10 +1,8 @@
-# 云瞰 YunKan
+# 云镜 CloudMirror
 
-> 你的服务器，一眼看懂。
+> 像照镜子一样，看懂自己的服务器。
 
-云瞰是一个面向独立开发者和 Vibe Coding 用户的轻量服务器可视化面板。它把 Ubuntu 里难读的命令输出，变成一个干净、中文、能解释当前状态的浏览器仪表盘。
-
-![云瞰小红书分享封面](docs/xiaohongshu-cover.png)
+云镜是一个面向独立开发者和 Vibe Coding 用户的轻量服务器可视化面板。它把 Ubuntu 里难读的命令输出，变成一个干净、中文、能解释当前状态的浏览器仪表盘。
 
 ## 它能看什么
 
@@ -22,8 +20,8 @@
 要求：Ubuntu 20.04+、Docker Engine 与 Docker Compose 插件。
 
 ```bash
-git clone https://github.com/your-name/yunkan.git
-cd yunkan
+git clone https://github.com/your-name/cloudmirror.git
+cd cloudmirror
 sh install.sh
 ```
 
@@ -79,4 +77,4 @@ npm run dev
 
 ## License
 
-MIT © 2026 YunKan contributors
+MIT © 2026 CloudMirror contributors

@@ -84,14 +84,14 @@ export default function Home() {
   return (
     <main className="shell">
       <aside className="sidebar">
-        <div className="brand"><span className="brand-mark">Y</span><div><b>云瞰</b><small>YUNKAN</small></div></div>
+        <div className="brand"><span className="brand-mark">C</span><div><b>云镜</b><small>CLOUDMIRROR</small></div></div>
         <nav>{sections.map((item, i) => <button key={item} onClick={() => setActive(item)} className={active === item ? "active" : ""}><span>{["◫", "⌁", "▰", "↗", "◇", "◉", "≡"][i]}</span>{item}</button>)}</nav>
         <div className="sidebar-bottom"><button><span>⚙</span>设置</button><a href="https://github.com" target="_blank" rel="noreferrer"><span>↗</span>GitHub</a></div>
       </aside>
 
       <section className="workspace">
         <header>
-          <div className="mobile-brand"><span className="brand-mark">Y</span><b>云瞰</b></div>
+          <div className="mobile-brand"><span className="brand-mark">C</span><b>云镜</b></div>
           <div className="server-title"><span className="server-icon">▰</span><div><h1>{data.meta.hostname}</h1><p><Dot />{live ? "实时连接" : "演示数据"} <em>·</em> {data.meta.os}</p></div></div>
           <div className="header-actions"><span className="refresh">{loading ? "同步中" : "每 5 秒刷新"}</span><button aria-label="通知">♢<i>2</i></button><div className="avatar">BW</div></div>
         </header>
@@ -116,12 +116,12 @@ export default function Home() {
 
           <section className="bottom-grid">
             <article className="panel"><div className="panel-heading"><div><p className="eyebrow">服务状态</p><h2>Docker 容器</h2></div><button onClick={() => setActive("Docker")}>查看全部 →</button></div><div className="service-list">{data.containers.slice(0, 4).map((item) => <div className="service" key={item.name}><span className="service-logo">{item.name.slice(0, 2).toUpperCase()}</span><div><strong>{item.name}</strong><small>{item.image}</small></div><span className="port">{item.ports || "—"}</span><span className="healthy"><Dot ok={item.state === "running"} />{item.state === "running" ? "运行中" : item.state}</span></div>)}</div></article>
-            <article className="panel"><div className="panel-heading"><div><p className="eyebrow">数据服务</p><h2>数据库</h2></div><button onClick={() => setActive("数据库")}>管理 →</button></div><div className="database-list">{data.databases.length ? data.databases.map((db) => <div className="database" key={db.name}><span className={`db-logo ${db.type.toLowerCase().includes("redis") ? "redis" : ""}`}>DB</span><div><strong>{db.name}</strong><small>{db.type} · 端口 {db.port}</small></div><span className="healthy"><Dot ok={db.status === "健康" || db.status === "running"} />{db.status}</span></div>) : <div className="empty">暂未检测到数据库容器</div>}</div><div className="tip"><span>i</span><p><b>安全提示</b>云瞰只读取运行状态，不会读取数据库中的业务数据。</p></div></article>
+            <article className="panel"><div className="panel-heading"><div><p className="eyebrow">数据服务</p><h2>数据库</h2></div><button onClick={() => setActive("数据库")}>管理 →</button></div><div className="database-list">{data.databases.length ? data.databases.map((db) => <div className="database" key={db.name}><span className={`db-logo ${db.type.toLowerCase().includes("redis") ? "redis" : ""}`}>DB</span><div><strong>{db.name}</strong><small>{db.type} · 端口 {db.port}</small></div><span className="healthy"><Dot ok={db.status === "健康" || db.status === "running"} />{db.status}</span></div>) : <div className="empty">暂未检测到数据库容器</div>}</div><div className="tip"><span>i</span><p><b>安全提示</b>云镜只读取运行状态，不会读取数据库中的业务数据。</p></div></article>
           </section>
 
           <section className="panel process-panel"><div className="panel-heading"><div><p className="eyebrow">资源排行</p><h2>最忙的进程</h2></div><button onClick={() => setActive("进程")}>查看全部 →</button></div><div className="process-table"><div className="process-row process-head"><span>进程</span><span>PID</span><span>CPU</span><span>内存</span><span>状态</span></div>{data.processes.slice(0, 5).map((p) => <div className="process-row" key={`${p.pid}-${p.name}`}><strong>{p.name}</strong><span>{p.pid}</span><span>{p.cpu.toFixed(1)}%</span><span>{p.memory.toFixed(1)}%</span><span className="healthy"><Dot />{p.status}</span></div>)}</div></section>
         </div>
-        <footer><span>云瞰 v0.1.0 · 开源、自托管、数据不出服务器</span><span suppressHydrationWarning>{data.meta.kernel} · {new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN")}</span></footer>
+        <footer><span>云镜 v0.1.0 · 开源、自托管、数据不出服务器</span><span suppressHydrationWarning>{data.meta.kernel} · {new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN")}</span></footer>
       </section>
     </main>
   );
