@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
 type Metric = {
   meta: { hostname: string; os: string; uptime: number; updatedAt: string };
@@ -108,17 +109,17 @@ export default function Home() {
 
       <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="云崽服务器桌面宠物">
         <header className="widget-bar">
-          <div><span className="tiny-logo">☁</span><b>云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
+          <div><span className="tiny-logo">♡</span><b>塔菲云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
           <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭云崽" onClick={closeWindow}>×</button></div>
         </header>
 
         <div className="pet-stage">
           <div className="speech"><b>{mood.title}</b><span>{mood.message}</span></div>
-          <button className="pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击云崽查看服务器状态">
-            <i className="ear left" /><i className="ear right" />
-            <div className="cloud-puff puff-one" /><div className="cloud-puff puff-two" /><div className="cloud-puff puff-three" />
-            <div className="pet-body"><span className="face">{mood.face}</span><i className="blush left" /><i className="blush right" />{mood.id === "busy" && <i className="sweat">◜</i>}{mood.id === "danger" && <i className="alert">!</i>}</div>
-            <i className="foot left" /><i className="foot right" />
+          <button className="pet taffy-pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击塔菲查看服务器状态">
+            <Image className="taffy-sprite" src="/taffy-pet.png" width={205} height={205} alt="Q版永雏塔菲桌面宠物" draggable={false} priority unoptimized />
+            {mood.id === "busy" && <i className="sweat">◜</i>}
+            {mood.id === "danger" && <i className="alert">!</i>}
+            {mood.id === "offline" && <i className="sleepy">zZ</i>}
           </button>
           <div className="quick-stats"><span><b>{data.cpu.usage.toFixed(0)}%</b> CPU</span><span><b>{data.memory.percent.toFixed(0)}%</b> 内存</span><span><b>{data.disk.percent.toFixed(0)}%</b> 磁盘</span></div>
         </div>
