@@ -121,7 +121,7 @@ export default function Home() {
 
           <section className="panel process-panel"><div className="panel-heading"><div><p className="eyebrow">资源排行</p><h2>最忙的进程</h2></div><button onClick={() => setActive("进程")}>查看全部 →</button></div><div className="process-table"><div className="process-row process-head"><span>进程</span><span>PID</span><span>CPU</span><span>内存</span><span>状态</span></div>{data.processes.slice(0, 5).map((p) => <div className="process-row" key={`${p.pid}-${p.name}`}><strong>{p.name}</strong><span>{p.pid}</span><span>{p.cpu.toFixed(1)}%</span><span>{p.memory.toFixed(1)}%</span><span className="healthy"><Dot />{p.status}</span></div>)}</div></section>
         </div>
-        <footer><span>云瞰 v0.1.0 · 开源、自托管、数据不出服务器</span><span>{data.meta.kernel} · {new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN")}</span></footer>
+        <footer><span>云瞰 v0.1.0 · 开源、自托管、数据不出服务器</span><span suppressHydrationWarning>{data.meta.kernel} · {new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN")}</span></footer>
       </section>
     </main>
   );
