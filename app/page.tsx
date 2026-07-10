@@ -179,7 +179,7 @@ export default function Home() {
 
         {panel === "setup" && <section className="drawer setup-drawer">
           <div className="drawer-title"><div><small>第一次见面</small><h2>服务器和电脑，各装一次</h2></div><span className="status-tag">主流 Linux</span></div>
-          <p className="setup-intro">腾讯云服务器安装监控服务；自己的 Windows 或 macOS 电脑运行桌面奶崽。两边通过系统 SSH 连接，不需要 Docker，也无需额外开放 6121 防火墙端口。</p>
+          <p className="setup-intro">腾讯云服务器安装监控服务；自己的 Windows 或 macOS 电脑运行桌面奶崽。两边通过系统 SSH 安全连接，不需要 Docker。</p>
           <div className="system-tags"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>Fedora</span><span>TencentOS</span><span>openEuler</span></div>
           <ol>
             <li><span>1</span><div><b>先在自己的电脑安装桌面奶崽</b><p>在 Windows 下载 Naizai-Setup.exe；在 macOS 下载对应芯片的 .dmg。安装后先把奶崽打开：</p><a className="release-link" href="https://github.com/wangxianda941030/cloudpet/releases/latest" target="_blank" rel="noreferrer">打开 GitHub Releases ↗</a><p>还没有安装包时，也可以先用源码版（需要 Git 和 Node.js 22）：</p><div className="command"><code>git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet/desktop && npm install && npm start</code><button onClick={() => copy("desktop", "git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet/desktop && npm install && npm start")}>{copied === "desktop" ? "好啦" : "复制"}</button></div></div></li>
@@ -187,7 +187,6 @@ export default function Home() {
             <li><span>3</span><div><b>粘贴奶崽配对码</b><p>服务器安装完成后会显示一条 naizai:// 配对码。粘贴进桌面版即可，不保存服务器密码或私钥：</p><div className="command"><code>naizai://ubuntu@公网IP?token=自动生成</code><button onClick={() => copy("url", "naizai://ubuntu@公网IP?token=自动生成")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
             <li><span>4</span><div><b>不想养了，一行卸载</b><p>回到服务器的 cloudpet 目录执行，会停止服务并删除服务器应用文件和克隆目录：</p><div className="command"><code>sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet</code><button onClick={() => copy("uninstall", "sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet")}>{copied === "uninstall" ? "好啦" : "复制"}</button></div></div></li>
           </ol>
-          <div className="privacy-note">🔒 默认无需修改腾讯云防火墙：6120 和 6121 都只监听服务器本机。奶崽只调用系统 SSH 与你已有的密钥；如使用密码登录，请先在系统终端配置 SSH 密钥。完全清理专用账户可再执行 <b>sudo userdel cloudy</b>。</div>
         </section>}
 
         <footer className="widget-footer"><span className={live ? "connection live" : "connection"}><i />{live ? "已连接真实服务器" : "未连接 · 正在展示示例"}</span><span suppressHydrationWarning>{new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span></footer>
