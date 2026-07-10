@@ -116,8 +116,9 @@ export default function Home() {
           <ol>
             <li><span>1</span><div><b>从 GitHub 原生安装</b><p>在服务器终端粘贴这一整行：</p><div className="command"><code>git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh</code><button onClick={() => copy("install", "git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
             <li><span>2</span><div><b>桌面宠物连接一次</b><p>腾讯云防火墙放行 TCP 6121，把安装完成后显示的整条私密地址粘贴进桌面版：</p><div className="command"><code>http://公网IP:6121/?token=自动生成</code><button onClick={() => copy("url", "http://公网IP:6121/?token=自动生成")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>3</span><div><b>不想养了，一行卸载</b><p>在 cloudpet 目录中执行，会停止服务并删除应用文件和克隆目录：</p><div className="command"><code>sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet</code><button onClick={() => copy("uninstall", "sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet")}>{copied === "uninstall" ? "好啦" : "复制"}</button></div></div></li>
           </ol>
-          <div className="privacy-note">🔒 公网只开放网页端口 6121；采集器 6120 只允许本机访问。安装器还会自动生成私密访问令牌。Docker 仍可通过 <b>sudo sh install.sh</b> 作为可选方案。</div>
+          <div className="privacy-note">🔒 公网只开放网页端口 6121；采集器 6120 只允许本机访问。安装器会自动生成私密令牌。完全清理专用账户可再执行 <b>sudo userdel cloudy</b>。</div>
         </section>}
 
         <footer className="widget-footer"><span className={live ? "connection live" : "connection"}><i />{live ? "已连接真实服务器" : "未连接 · 正在展示示例"}</span><span suppressHydrationWarning>{new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span></footer>

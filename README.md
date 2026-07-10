@@ -44,9 +44,17 @@ git pull && sudo sh install-native.sh
 # 查看状态
 systemctl status cloudy-agent cloudy-web
 
-# 卸载
+# 卸载服务和应用文件
 sudo sh uninstall-native.sh
+
+# 如果当前就在 cloudpet 目录中，同时删除克隆的源码目录
+cd .. && rm -rf cloudpet
+
+# 可选：删除安装时创建的专用系统账户
+sudo userdel cloudy
 ```
+
+卸载脚本会停止并删除两个 systemd 服务，并删除 `/opt/cloudy` 下的应用和独立 Node.js 运行时。系统自带或通过包管理器补齐的 Python、curl、tar 等通用工具不会自动删除，以免影响服务器上的其他程序。
 
 ## 安全设计
 
