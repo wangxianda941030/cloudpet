@@ -29,6 +29,10 @@ install_dependencies
 
 NOLOGIN=$(command -v nologin 2>/dev/null || printf '/sbin/nologin')
 id cloudy >/dev/null 2>&1 || useradd --system --home-dir "$INSTALL_DIR" --shell "$NOLOGIN" cloudy
+if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] && id "$SUDO_USER" >/dev/null 2>&1; then
+  INSTALL_GROUP=$(id -gn "$SUDO_USER")
+  usermod -a -G "$INSTALL_GROUP" cloudy
+fi
 mkdir -p "$INSTALL_DIR"
 tar --exclude=.git --exclude=node_modules --exclude=dist --exclude=.next --exclude=.vinext --exclude=.wrangler --exclude=desktop/node_modules -C "$SOURCE_DIR" -cf - . | tar -C "$INSTALL_DIR" -xf -
 
@@ -58,7 +62,11 @@ cd "$INSTALL_DIR"
 npm ci
 npm run build
 chown -R cloudy:cloudy "$INSTALL_DIR"
-ACCESS_TOKEN=$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')
+ACCESS_TOKEN=""
+if [ "${CLOUDY_ROTATE_TOKEN:-0}" != "1" ] && [ -f /etc/systemd/system/cloudy-web.service ]; then
+  ACCESS_TOKEN=$(sed -n 's/^Environment=CLOUDY_ACCESS_TOKEN=//p' /etc/systemd/system/cloudy-web.service | head -n 1)
+fi
+[ -n "$ACCESS_TOKEN" ] || ACCESS_TOKEN=$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')
 
 cat > /etc/systemd/system/cloudy-agent.service <<'SERVICE'
 [Unit]

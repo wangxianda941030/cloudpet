@@ -2,13 +2,19 @@
 """Cloudy collector: read-only Linux and Docker metrics, stdlib only."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-import json, os, platform, shutil, socket, subprocess, time, urllib.parse
+import json, os, platform, shutil, socket, sqlite3, subprocess, time, urllib.parse
 
 PROC = Path(os.getenv("CLOUDY_PROC", "/proc"))
 ROOT = os.getenv("CLOUDY_ROOT", "/")
 started = time.time()
 last_cpu = None
 last_net = None
+inventory_cache = {"at": 0, "projects": [], "databases": []}
+
+SCAN_ROOTS = [item.strip() for item in os.getenv("CLOUDY_SCAN_ROOTS", "/var/www,/srv,/opt,/home").split(",") if item.strip()]
+SKIP_DIRS = {".git", ".hg", ".svn", "node_modules", "vendor", ".venv", "venv", "__pycache__", "dist", "build", ".next", ".cache", "coverage", "proc", "sys", "dev"}
+SENSITIVE_NAMES = {".env", ".env.local", ".env.production", "id_rsa", "id_ed25519", "credentials", "credentials.json", "secrets.json"}
+MANIFESTS = {"package.json", "pyproject.toml", "requirements.txt", "manage.py", "composer.json", "go.mod", "Cargo.toml", "pom.xml", "build.gradle", "Gemfile", "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"}
 
 def read(path, default=""):
     try: return (PROC / path).read_text()
@@ -57,6 +63,126 @@ def top_processes():
     except Exception: pass
     return rows
 
+def safe_manifest_text(path, limit=262144):
+    try:
+        if path.stat().st_size > limit: return ""
+        return path.read_text(errors="ignore")
+    except (OSError, PermissionError): return ""
+
+def project_identity(directory, names):
+    project_type = framework = ""
+    name = directory.name
+    if "package.json" in names:
+        project_type = "Node.js"
+        text = safe_manifest_text(directory / "package.json")
+        try: name = json.loads(text).get("name") or name
+        except (ValueError, TypeError): pass
+        checks = [("next", "Next.js"), ("nuxt", "Nuxt"), ("@nestjs/core", "NestJS"), ("express", "Express"), ("vite", "Vite"), ("react", "React"), ("vue", "Vue")]
+        framework = next((label for key, label in checks if f'"{key}"' in text), "Node.js")
+    elif {"pyproject.toml", "requirements.txt", "manage.py"} & names:
+        project_type = "Python"
+        text = "\n".join(safe_manifest_text(directory / item) for item in ("pyproject.toml", "requirements.txt") if item in names).lower()
+        framework = "Django" if "manage.py" in names or "django" in text else "FastAPI" if "fastapi" in text else "Flask" if "flask" in text else "Python"
+    elif "composer.json" in names:
+        project_type = "PHP"; text = safe_manifest_text(directory / "composer.json"); framework = "Laravel" if "laravel/framework" in text else "Composer"
+    elif "go.mod" in names: project_type = framework = "Go"
+    elif "Cargo.toml" in names: project_type = framework = "Rust"
+    elif {"pom.xml", "build.gradle"} & names: project_type = "Java"; framework = "Maven" if "pom.xml" in names else "Gradle"
+    elif "Gemfile" in names: project_type = "Ruby"; framework = "Rails" if "rails" in safe_manifest_text(directory / "Gemfile").lower() else "Ruby"
+    elif {"docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml"} & names: project_type = framework = "Docker Compose"
+    return name[:80], project_type, framework
+
+def visible_tree(directory, max_entries=80, max_depth=3):
+    entries = []
+    base_depth = len(directory.parts)
+    try:
+        for current, dirs, files in os.walk(str(directory)):
+            current_path = Path(current)
+            depth = len(current_path.parts) - base_depth
+            dirs[:] = sorted(item for item in dirs if item not in SKIP_DIRS and not item.startswith("."))
+            if depth >= max_depth: dirs[:] = []
+            for item in dirs:
+                entries.append({"path": str((current_path / item).relative_to(directory)), "kind": "folder"})
+                if len(entries) >= max_entries: return entries
+            for item in sorted(files):
+                if item in SENSITIVE_NAMES or item.startswith(".env") or item.endswith((".pem", ".key", ".p12", ".pfx")): continue
+                path = current_path / item
+                try: size = path.stat().st_size
+                except OSError: size = 0
+                entries.append({"path": str(path.relative_to(directory)), "kind": "file", "size": size})
+                if len(entries) >= max_entries: return entries
+    except (OSError, PermissionError): pass
+    return entries
+
+def sqlite_schema(path):
+    tables = []
+    try:
+        uri = "file:" + urllib.parse.quote(str(path)) + "?mode=ro"
+        connection = sqlite3.connect(uri, uri=True, timeout=1)
+        rows = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name LIMIT 30").fetchall()
+        for (name,) in rows:
+            quoted = str(name).replace('"', '""')
+            columns = connection.execute(f'PRAGMA table_info("{quoted}")').fetchall()
+            tables.append({"name": str(name)[:100], "columns": [{"name": str(row[1])[:100], "type": str(row[2] or "unknown")[:60], "primary": bool(row[5])} for row in columns[:50]]})
+        connection.close()
+    except (sqlite3.Error, OSError, PermissionError): return []
+    return tables
+
+def discover_projects(scan_roots=None, max_projects=20, max_dirs=800):
+    projects = []; sqlite_databases = []; visited = 0
+    roots = scan_roots if scan_roots is not None else SCAN_ROOTS
+    for root_name in roots:
+        root = Path(root_name)
+        if not root.exists() or not root.is_dir(): continue
+        try:
+            walker = os.walk(str(root))
+            for current, dirs, files in walker:
+                visited += 1
+                current_path = Path(current)
+                dirs[:] = sorted(item for item in dirs if item not in SKIP_DIRS and not item.startswith("."))
+                if len(current_path.parts) - len(root.parts) >= 5: dirs[:] = []
+                names = set(files)
+                manifests = sorted(names & MANIFESTS)
+                if manifests:
+                    name, project_type, framework = project_identity(current_path, names)
+                    project = {"name": name, "path": str(current_path), "type": project_type, "framework": framework, "manifests": manifests, "files": visible_tree(current_path)}
+                    projects.append(project)
+                    for base, subdirs, db_files in os.walk(str(current_path)):
+                        subdirs[:] = [item for item in subdirs if item not in SKIP_DIRS and not item.startswith(".")]
+                        if len(Path(base).parts) - len(current_path.parts) >= 4: subdirs[:] = []
+                        for filename in db_files:
+                            if filename.lower().endswith((".db", ".sqlite", ".sqlite3")):
+                                db_path = Path(base) / filename
+                                try:
+                                    if db_path.stat().st_size > 512 * 1024 * 1024: continue
+                                except OSError: continue
+                                tables = sqlite_schema(db_path)
+                                if tables: sqlite_databases.append({"name": filename[:100], "type": "SQLite", "status": "只读", "port": "文件", "path": str(db_path), "source": "file", "tables": tables})
+                                if len(sqlite_databases) >= 20: break
+                    dirs[:] = []
+                    if len(projects) >= max_projects: return projects, sqlite_databases
+                if visited >= max_dirs: return projects, sqlite_databases
+        except (OSError, PermissionError): continue
+    return projects, sqlite_databases
+
+def native_databases():
+    detected = []
+    definitions = [("postgres", "PostgreSQL", "5432"), ("mysqld", "MySQL", "3306"), ("mariadbd", "MariaDB", "3306"), ("redis-server", "Redis", "6379"), ("mongod", "MongoDB", "27017")]
+    try: process_names = subprocess.check_output(["ps", "-eo", "comm="], text=True, timeout=2, stderr=subprocess.DEVNULL).lower()
+    except Exception: process_names = ""
+    for command, label, port in definitions:
+        if command in process_names: detected.append({"name": label.lower(), "type": label, "status": "运行中", "port": port, "source": "process", "tables": []})
+    return detected
+
+def inventory(force=False):
+    global inventory_cache
+    now = time.time()
+    if not force and now - inventory_cache["at"] < 60: return inventory_cache["projects"], inventory_cache["databases"]
+    projects, file_databases = discover_projects()
+    databases = native_databases() + file_databases
+    inventory_cache = {"at": now, "projects": projects, "databases": databases}
+    return projects, databases
+
 def docker_get(path):
     sock_path="/var/run/docker.sock"
     if not os.path.exists(sock_path): return []
@@ -95,7 +221,12 @@ def containers():
     return result,databases
 
 def metrics():
-    containers_list, databases = containers()
+    containers_list, container_databases = containers()
+    projects, discovered_databases = inventory()
+    seen = set(); databases = []
+    for database in container_databases + discovered_databases:
+        key = (database.get("type"), database.get("name"), database.get("path"))
+        if key not in seen: seen.add(key); databases.append(database)
     try: usage=shutil.disk_usage(ROOT)
     except OSError: usage=shutil.disk_usage("/")
     try: load=list(os.getloadavg())
@@ -111,7 +242,8 @@ def metrics():
       "meta":{"hostname":socket.gethostname(),"os":os_name,"kernel":platform.release(),"uptime":float(read("uptime","0").split()[0]),"updatedAt":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime())},
       "cpu":{"usage":cpu_usage(),"cores":os.cpu_count() or 1,"load":[round(v,2) for v in load],"temperature":None},
       "memory":memory(),"disk":{"total":usage.total,"used":usage.used,"percent":round(usage.used/max(1,usage.total)*100,1)},
-      "network":network(),"processes":top_processes(),"containers":containers_list,"databases":databases
+      "network":network(),"processes":top_processes(),"containers":containers_list,"databases":databases,"projects":projects,
+      "inventory":{"scanRoots":SCAN_ROOTS,"refreshSeconds":60,"readOnly":True,"fileContents":False}
     }
 
 class Handler(BaseHTTPRequestHandler):

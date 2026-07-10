@@ -15,6 +15,16 @@
 - 进程：CPU 占用最高的进程
 - 健康结论：把指标翻译成“一切正常 / 需要关注 / 需要处理”
 
+## 服务器地图
+
+- 自动扫描 `/var/www`、`/srv`、`/opt` 与 `/home` 中可读取的项目
+- 识别 Next.js、React、Vue、Nuxt、NestJS、Express、Vite、Django、FastAPI、Flask、Laravel、Go、Rust、Java、Ruby 与 Docker Compose
+- 展示项目路径、清单文件和最多三层的安全文件树
+- 自动识别原生 PostgreSQL、MySQL、MariaDB、Redis、MongoDB 进程及常用端口
+- 对项目中的 SQLite 数据库使用只读连接，展示表名、字段类型和主键，不读取任何业务行
+
+资产发现每 60 秒刷新一次。它不会返回文件内容，并自动跳过 `.env`、私钥、证书、Git 历史、依赖目录和构建缓存。MySQL/PostgreSQL 等需要账号的数据库只做服务识别，不会尝试从项目文件中提取密码。
+
 ## 3 分钟安装
 
 支持主流 Linux 发行版与 x86_64/arm64，包括 Ubuntu、Debian、CentOS Stream、Rocky Linux、AlmaLinux、Fedora、TencentOS Server 和 openEuler。
@@ -61,6 +71,7 @@ sudo userdel cloudy
 - 采集器只读取 `/proc`、磁盘容量和 Docker 状态，不读取数据库业务数据。
 - 默认不需要数据库账号、SSH 密钥或云厂商密钥。
 - 原生模式的采集端口只监听 `127.0.0.1`，网页接口使用随机访问令牌。
+- 服务器地图只返回项目结构元数据；SQLite 以只读模式打开，其他数据库不自动登录。
 - Docker Socket 以只读方式挂载；尽管如此，它仍是高权限接口，请勿运行来源不明的分支或镜像。
 - 请不要公开或截图分享安装器输出的私密访问地址。
 
