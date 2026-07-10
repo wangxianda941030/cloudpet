@@ -7,6 +7,7 @@ services:
     build: ./collector
     restart: unless-stopped
     pid: host
+    uts: host
     environment:
       CLOUDY_PROC: /host/proc
       CLOUDY_ROOT: /host/root

@@ -103,7 +103,7 @@ def metrics():
     os_name=platform.platform()
     try:
         release={}
-        for line in Path("/etc/os-release").read_text().splitlines():
+        for line in (Path(ROOT) / "etc/os-release").read_text().splitlines():
             if "=" in line: k,v=line.split("=",1); release[k]=v.strip('"')
         os_name=release.get("PRETTY_NAME",os_name)
     except OSError: pass

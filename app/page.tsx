@@ -55,7 +55,7 @@ export default function Home() {
   }, []);
 
   const mood = useMemo(() => {
-    if (!live) return { id: "offline", title: loading ? "我在找服务器…" : "还没牵上线呢", message: loading ? "稍等我闻一闻网络。" : "连接 Ubuntu 后，我就能替你守着它。", face: "· ᴗ ·" };
+    if (!live) return { id: "offline", title: loading ? "我在找服务器…" : "还没牵上线呢", message: loading ? "稍等我闻一闻网络。" : "连接 Linux 服务器后，我就能替你守着它。", face: "· ᴗ ·" };
     const max = Math.max(data.cpu.usage, data.memory.percent, data.disk.percent);
     if (max >= 90) return { id: "danger", title: "主人，快看这里！", message: "有一项资源快用完了，我有点担心。", face: "> ︿ <" };
     if (max >= 75) return { id: "busy", title: "今天有点忙呀", message: "服务器正在努力工作，我会继续盯着。", face: "• ︵ •" };
@@ -109,12 +109,12 @@ export default function Home() {
         </section>}
 
         {panel === "setup" && <section className="drawer setup-drawer">
-          <div className="drawer-title"><div><small>第一次见面</small><h2>把云崽牵到服务器</h2></div><span className="status-tag">Ubuntu</span></div>
-          <p className="setup-intro">云崽和采集器一起运行在你的服务器上，不需要把 SSH、数据库密码或云密钥交给网页。</p>
+          <div className="drawer-title"><div><small>第一次见面</small><h2>一条命令住进服务器</h2></div><span className="status-tag">主流 Linux</span></div>
+          <p className="setup-intro">云崽基于 Docker 运行，支持 x86_64 与 arm64。安装器会识别系统、自动补齐 Docker，不需要把 SSH、数据库密码或云密钥交给网页。</p>
+          <div className="system-tags"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>Fedora</span><span>TencentOS</span><span>openEuler</span></div>
           <ol>
-            <li><span>1</span><div><b>把项目放进服务器</b><p>上传 GitHub 后，在腾讯云终端执行：</p><div className="command"><code>git clone 你的仓库地址 cloudpet && cd cloudpet</code><button onClick={() => copy("clone", "git clone 你的仓库地址 cloudpet && cd cloudpet")}>{copied === "clone" ? "好啦" : "复制"}</button></div></div></li>
-            <li><span>2</span><div><b>启动采集器</b><p>需要服务器已安装 Docker 与 Compose。</p><div className="command"><code>sh install.sh</code><button onClick={() => copy("install", "sh install.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
-            <li><span>3</span><div><b>打开桌面宠物</b><p>腾讯云防火墙放行 TCP 6121 后访问：</p><div className="command"><code>http://服务器公网IP:6121</code><button onClick={() => copy("url", "http://服务器公网IP:6121")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>1</span><div><b>从 GitHub 安装</b><p>公开仓库后，在服务器终端粘贴这一整行：</p><div className="command"><code>git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install.sh</code><button onClick={() => copy("install", "git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>2</span><div><b>桌面宠物连接一次</b><p>腾讯云防火墙放行 TCP 6121，首次启动桌面版只填：</p><div className="command"><code>你的服务器公网IP:6121</code><button onClick={() => copy("url", "你的服务器公网IP:6121")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
           </ol>
           <div className="privacy-note">🔒 只读取系统状态，不读取数据库业务内容。</div>
         </section>}

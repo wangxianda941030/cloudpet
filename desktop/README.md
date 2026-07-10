@@ -6,11 +6,11 @@
 cd desktop
 npm install
 
-# 本地开发
+# 本地开发（直接连接本机网页）
 npm start
 
 # 连接部署在服务器上的云崽
 npm start -- http://你的服务器公网IP:6121
 ```
 
-桌面壳不保存服务器密码，只加载服务器上已经运行的云崽页面。正式安装包可以在后续加入 Electron Forge 或 electron-builder 生成。
+直接执行 `npm start` 时，首次启动会显示服务器地址输入框；填一次后会保存在本机应用数据目录。桌面壳不保存服务器密码，只保存云崽网页地址。正式安装包可以在后续加入 Electron Forge 或 electron-builder 生成。

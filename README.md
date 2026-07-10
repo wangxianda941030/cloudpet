@@ -2,7 +2,7 @@
 
 > 把服务器状态，养成一只桌面小宠物。
 
-云崽是一个面向独立开发者和 Vibe Coding 用户的服务器桌面宠物。它把 Ubuntu 里难读的指标，变成宠物的心情：健康时开心晃动，资源紧张时冒汗，服务器掉线时提醒你重新连接。
+云崽是一个面向独立开发者和 Vibe Coding 用户的服务器桌面宠物。它把 Linux 里难读的指标，变成宠物的心情：健康时开心晃动，资源紧张时冒汗，服务器掉线时提醒你重新连接。
 
 ## 它能看什么
 
@@ -17,12 +17,10 @@
 
 ## 3 分钟安装
 
-要求：Ubuntu 20.04+、Docker Engine 与 Docker Compose 插件。
+支持主流 Linux 发行版与 x86_64/arm64，包括 Ubuntu、Debian、CentOS Stream、Rocky Linux、AlmaLinux、Fedora，以及安装了 Docker 的 TencentOS Server 和 openEuler。
 
 ```bash
-git clone https://github.com/your-name/cloudy.git
-cd cloudy
-sh install.sh
+git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install.sh
 ```
 
 浏览器访问：`http://你的服务器公网 IP:6121`
