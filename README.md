@@ -20,7 +20,7 @@
 支持主流 Linux 发行版与 x86_64/arm64，包括 Ubuntu、Debian、CentOS Stream、Rocky Linux、AlmaLinux、Fedora、TencentOS Server 和 openEuler。
 
 ```bash
-git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install-native.sh
+git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh
 ```
 
 原生安装器会下载并校验独立的 Node.js 22 运行时，使用系统 Python 运行只读采集器，并创建两个 systemd 服务。公网只需放行 TCP `6121`，采集器端口 `6120` 仅监听 `127.0.0.1`。安装器会自动生成访问令牌并打印完整私密地址，将整条地址粘贴到桌面宠物即可。
