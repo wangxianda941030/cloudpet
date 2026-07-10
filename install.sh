@@ -83,17 +83,20 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
+ACCESS_TOKEN=$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')
+export CLOUDY_ACCESS_TOKEN=$ACCESS_TOKEN
+printf '%s\n' "$ACCESS_TOKEN" > /etc/naizai-token
+chmod 644 /etc/naizai-token
 echo "正在启动奶崽…"
 docker compose up -d --build
 
-PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=""
 if command -v curl >/dev/null 2>&1; then PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true); fi
+PAIR_USER=${SUDO_USER:-root}
 
 echo ""
 echo "✓ 奶崽已经住进你的服务器"
-echo "  公网访问：http://${PUBLIC_IP:-你的服务器公网IP}:6121"
-echo "  内网访问：http://${PRIVATE_IP:-服务器内网IP}:6121"
-echo ""
-echo "如果公网无法访问，请在腾讯云控制台的防火墙/安全组中放行 TCP 6121。"
-echo "桌面宠物首次启动时，只需填写：${PUBLIC_IP:-你的服务器公网IP}:6121"
+echo "  打开桌面奶崽并填写："
+echo "  服务器：${PUBLIC_IP:-你的服务器公网IP}"
+echo "  SSH 用户名：$PAIR_USER"
+echo "  然后选择已绑定到这台服务器的腾讯云 SSH 私钥。"

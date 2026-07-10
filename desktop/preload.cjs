@@ -2,7 +2,8 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("cloudy", {
-  connect: (serverUrl) => ipcRenderer.invoke("cloudy:connect", serverUrl),
+  chooseKey: () => ipcRenderer.invoke("cloudy:choose-key"),
+  connect: (serverUrl, identityFile, username) => ipcRenderer.invoke("cloudy:connect", serverUrl, identityFile, username),
   setExpanded: (expanded) => ipcRenderer.send("cloudy:set-expanded", Boolean(expanded)),
   close: () => ipcRenderer.send("cloudy:close"),
 });
@@ -29,9 +30,9 @@ window.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", (event) => {
     const button = event.target instanceof Element ? event.target.closest("button") : null;
     const label = button?.getAttribute("aria-label");
-    if (label === "关闭面板" || label === "关闭云崽" || label === "关闭奶崽") {
+    if (label === "关闭面板" || label === "关闭奶崽") {
       event.preventDefault(); event.stopImmediatePropagation(); ipcRenderer.send("cloudy:close");
-    } else if (label === "收起" || label === "最小化云崽") {
+    } else if (label === "收起") {
       event.preventDefault(); event.stopImmediatePropagation();
       const activePanelButton = Array.from(document.querySelectorAll(".widget-buttons button")).find((item) => item.textContent?.trim() === "收起");
       if (activePanelButton instanceof HTMLElement) activePanelButton.click();

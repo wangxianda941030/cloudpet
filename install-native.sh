@@ -70,6 +70,8 @@ if [ "${CLOUDY_ROTATE_TOKEN:-0}" != "1" ] && [ -f /etc/systemd/system/cloudy-web
   ACCESS_TOKEN=$(sed -n 's/^Environment=CLOUDY_ACCESS_TOKEN=//p' /etc/systemd/system/cloudy-web.service | head -n 1)
 fi
 [ -n "$ACCESS_TOKEN" ] || ACCESS_TOKEN=$(od -An -N24 -tx1 /dev/urandom | tr -d ' \n')
+printf '%s\n' "$ACCESS_TOKEN" > /etc/naizai-token
+chmod 644 /etc/naizai-token
 
 cat > /etc/systemd/system/cloudy-agent.service <<'SERVICE'
 [Unit]
@@ -128,22 +130,17 @@ systemctl daemon-reload
 systemctl enable cloudy-agent cloudy-web
 systemctl restart cloudy-agent cloudy-web
 
-PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true)
 PAIR_USER=${SUDO_USER:-root}
 echo ""
 echo "✓ 奶崽已通过原生模式启动（无 Docker）"
 if [ "$WEB_BIND" = "127.0.0.1" ] || [ "$WEB_BIND" = "localhost" ]; then
-  echo "  复制这条配对码到桌面端（走 SSH，无需开放 6121）："
-  echo "  naizai://${PAIR_USER}@${PUBLIC_IP:-你的服务器公网IP}?token=$ACCESS_TOKEN"
-  echo ""
-  echo "  也可在自己的电脑运行：ssh -N -L 6121:127.0.0.1:6121 ${PAIR_USER}@${PUBLIC_IP:-你的服务器公网IP}"
-  echo "  然后打开：http://127.0.0.1:6121/?token=$ACCESS_TOKEN"
+  echo "  打开桌面奶崽并填写："
+  echo "  服务器：${PUBLIC_IP:-你的服务器公网IP}"
+  echo "  SSH 用户名：$PAIR_USER"
+  echo "  然后选择已绑定到这台服务器的腾讯云 SSH 私钥。"
 else
-  echo "  高级公网模式：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
-  echo "  内网地址：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
+  echo "  奶崽服务已经启动。"
 fi
 echo ""
-echo "默认模式下 6120/6121 均仅监听本机，无需修改腾讯云防火墙。请勿公开上面的私密配对码。"
-echo "如确需旧版公网直连：NAIZAI_WEB_BIND=0.0.0.0 sudo sh install-native.sh，并自行放行 TCP 6121。"
 echo "查看状态：systemctl status cloudy-agent cloudy-web"

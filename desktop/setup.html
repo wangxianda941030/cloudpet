@@ -5,25 +5,31 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>连接奶崽</title>
   <style>
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;background:transparent;color:#2b2925;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.card{position:relative;min-height:500px;padding:26px;border:1px solid rgba(255,255,255,.9);border-radius:24px;background:rgba(255,255,255,.96);box-shadow:0 24px 70px rgba(67,54,38,.18);-webkit-app-region:drag}.close{position:absolute;right:18px;top:18px;width:28px;height:28px;border:0;border-radius:8px;background:#f1efeb;color:#8d8881;cursor:pointer;-webkit-app-region:no-drag}.pet{width:110px;height:86px;margin:36px auto 18px;border-radius:55% 55% 48% 48%;background:#deedff;display:grid;place-items:center;color:#3d607f;font-size:17px;font-weight:800;box-shadow:0 -18px 0 -3px #eaf4ff,28px -8px 0 -10px #e5f1ff,-28px -7px 0 -10px #e5f1ff}h1{margin:0;text-align:center;font-size:25px;letter-spacing:-.04em}p{margin:9px auto 24px;max-width:290px;text-align:center;color:#77716a;font-size:12px;line-height:1.6}.label{display:block;margin-bottom:7px;font-size:11px;font-weight:700}.input-row{display:flex;gap:7px;-webkit-app-region:no-drag}input{min-width:0;flex:1;height:43px;padding:0 12px;border:1px solid rgba(0,0,0,.12);border-radius:10px;outline:0;font-size:12px}input:focus{border-color:#6ea9ee;box-shadow:0 0 0 3px rgba(110,169,238,.15)}button.connect{width:86px;border:0;border-radius:10px;background:#3679c7;color:#fff;font-size:11px;font-weight:750;cursor:pointer}.hint{margin-top:15px;padding:12px;border-radius:11px;background:#fff6da;color:#806b3c;font-size:9px;line-height:1.6}.systems{display:flex;flex-wrap:wrap;gap:5px;margin-top:16px}.systems span{padding:5px 8px;border-radius:999px;background:#f2f5f8;color:#747a80;font-size:8px}.error{min-height:18px;margin-top:8px;color:#d84b49;font-size:9px}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;background:transparent;color:#2b2925;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.card{position:relative;min-height:500px;padding:25px;border:1px solid rgba(255,255,255,.9);border-radius:24px;background:rgba(255,255,255,.96);box-shadow:0 24px 70px rgba(67,54,38,.18);-webkit-app-region:drag}.close{position:absolute;right:18px;top:18px;width:28px;height:28px;border:0;border-radius:8px;background:#f1efeb;color:#8d8881;cursor:pointer;-webkit-app-region:no-drag}.pet{display:block;width:104px;height:104px;margin:18px auto 9px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 10px 12px rgba(123,88,20,.15))}h1{margin:0;text-align:center;font-size:25px;letter-spacing:-.04em}p{margin:7px auto 18px;max-width:310px;text-align:center;color:#77716a;font-size:11px;line-height:1.6}.label{display:block;margin:12px 0 7px;font-size:11px;font-weight:700}.input-row{display:flex;gap:7px;-webkit-app-region:no-drag}input{min-width:0;flex:1;height:43px;padding:0 12px;border:1px solid rgba(0,0,0,.12);border-radius:10px;outline:0;background:#fff;font-size:11px}input:focus{border-color:#6ea9ee;box-shadow:0 0 0 3px rgba(110,169,238,.15)}button.action{flex:none;width:82px;border:0;border-radius:10px;background:#3679c7;color:#fff;font-size:11px;font-weight:750;cursor:pointer}button.secondary{background:#eef4fb;color:#3f6f9e}.connect{width:100%!important;height:43px;margin-top:13px}.hint{margin-top:13px;padding:11px;border-radius:11px;background:#f1f7ff;color:#55718d;font-size:9px;line-height:1.6}.systems{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}.systems span{padding:5px 8px;border-radius:999px;background:#f2f5f8;color:#747a80;font-size:8px}.error{min-height:17px;margin-top:8px;color:#d84b49;font-size:9px;line-height:1.45}.file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#69645e}.card button,.card input{-webkit-app-region:no-drag}
   </style>
 </head>
 <body>
   <main class="card">
     <button class="close" id="close" aria-label="关闭">×</button>
-    <div class="pet">• ᴗ •</div>
+    <img class="pet" src="assets/icon.png" alt="奶崽" />
     <h1>把奶崽牵回桌面</h1>
-    <p>粘贴安装器显示的配对码，奶崽会通过系统 SSH 建立私密通道。</p>
-    <label class="label" for="server">奶崽配对码</label>
-    <div class="input-row"><input id="server" placeholder="naizai://ubuntu@公网IP?token=…" autofocus /><button class="connect" id="connect">连接</button></div>
+    <p>填写服务器地址并选择腾讯云私钥，剩下的交给奶崽。</p>
+    <label class="label" for="server">服务器公网 IP 或域名</label>
+    <div class="input-row"><input id="server" placeholder="例如 139.199.87.41" autofocus /></div>
+    <label class="label" for="username">SSH 用户名</label>
+    <div class="input-row"><input id="username" placeholder="Ubuntu 通常是 ubuntu" value="ubuntu" /></div>
+    <label class="label" for="identity">腾讯云 SSH 私钥</label>
+    <div class="input-row"><input class="file-name" id="identity" placeholder="选择创建 SSH 密钥时下载的文件" readonly /><button class="action secondary" id="choose-key">选择文件</button></div>
+    <button class="action connect" id="connect">连接奶崽</button>
     <div class="error" id="error"></div>
-    <div class="hint"><b>不用开放 6121 防火墙。</b>桌面端只调用电脑自带的 SSH，不保存密码或私钥。首次连接前，请先确认系统终端可以用密钥执行 <b>ssh 用户名@公网IP</b>。</div>
+    <div class="hint"><b>无需配对码。</b>奶崽会通过 SSH 自动读取服务信息。私钥只留在你的电脑，不会被复制、上传或显示。</div>
     <div class="systems"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>TencentOS</span><span>openEuler</span></div>
   </main>
   <script>
-    const input=document.getElementById('server'),error=document.getElementById('error'),button=document.getElementById('connect');
-    const params=new URLSearchParams(location.search);input.value=params.get('server')||'';error.textContent=params.get('error')||'';
-    async function connect(){error.textContent='正在找奶崽…';button.disabled=true;const result=await window.cloudy.connect(input.value);if(!result.ok){error.textContent=result.message;button.disabled=false}}
+    const input=document.getElementById('server'),username=document.getElementById('username'),identity=document.getElementById('identity'),error=document.getElementById('error'),button=document.getElementById('connect'),chooseKey=document.getElementById('choose-key');
+    const params=new URLSearchParams(location.search);input.value=params.get('server')||'';username.value=params.get('username')||'ubuntu';identity.value=params.get('identity')||'';error.textContent=params.get('error')||'';
+    chooseKey.addEventListener('click',async()=>{const selected=await window.cloudy.chooseKey();if(selected){identity.value=selected;error.textContent=''}});
+    async function connect(){if(!input.value.trim()){error.textContent='请填写服务器公网 IP 或域名。';return}if(!username.value.trim()){error.textContent='请填写 SSH 用户名。';return}if(!identity.value){error.textContent='请先选择腾讯云下载的 SSH 私钥文件。';return}error.textContent='正在通过 SSH 找奶崽…';button.disabled=true;const result=await window.cloudy.connect(input.value,identity.value,username.value);if(!result.ok){error.textContent=result.message;button.disabled=false}}
     button.addEventListener('click',connect);input.addEventListener('keydown',(event)=>{if(event.key==='Enter')connect()});document.getElementById('close').addEventListener('click',()=>window.cloudy.close());
   </script>
 </body>

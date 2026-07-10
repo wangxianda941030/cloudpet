@@ -2,6 +2,8 @@ services:
   dashboard:
     build: .
     restart: unless-stopped
+    environment:
+      CLOUDY_ACCESS_TOKEN: ${CLOUDY_ACCESS_TOKEN:-development}
     expose: ["3000"]
   collector:
     build: ./collector
@@ -21,6 +23,6 @@ services:
     restart: unless-stopped
     depends_on: [dashboard, collector]
     ports:
-      - "6121:80"
+      - "127.0.0.1:6121:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
