@@ -62,6 +62,7 @@ cd "$INSTALL_DIR"
 npm ci
 npm run build
 chown -R cloudy:cloudy "$INSTALL_DIR"
+APP_VERSION=$(sha256sum package-lock.json app/page.tsx collector/agent.py | sha256sum | awk '{print substr($1,1,12)}')
 ACCESS_TOKEN=""
 if [ "${CLOUDY_ROTATE_TOKEN:-0}" != "1" ] && [ -f /etc/systemd/system/cloudy-web.service ]; then
   ACCESS_TOKEN=$(sed -n 's/^Environment=CLOUDY_ACCESS_TOKEN=//p' /etc/systemd/system/cloudy-web.service | head -n 1)
@@ -106,6 +107,7 @@ Environment=HOST=0.0.0.0
 Environment=PORT=6121
 Environment=CLOUDY_COLLECTOR_URL=http://127.0.0.1:6120/metrics
 Environment=CLOUDY_ACCESS_TOKEN=__CLOUDY_ACCESS_TOKEN__
+Environment=CLOUDY_APP_VERSION=__CLOUDY_APP_VERSION__
 Environment=PATH=/opt/cloudy/.runtime/node/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 ExecStart=/opt/cloudy/.runtime/node/bin/npm run start
 Restart=on-failure
@@ -117,6 +119,7 @@ PrivateTmp=true
 WantedBy=multi-user.target
 SERVICE
 sed -i "s/__CLOUDY_ACCESS_TOKEN__/$ACCESS_TOKEN/" /etc/systemd/system/cloudy-web.service
+sed -i "s/__CLOUDY_APP_VERSION__/$APP_VERSION/" /etc/systemd/system/cloudy-web.service
 
 systemctl daemon-reload
 systemctl enable --now cloudy-agent cloudy-web

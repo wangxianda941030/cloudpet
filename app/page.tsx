@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Metric = {
   meta: { hostname: string; os: string; uptime: number; updatedAt: string };
@@ -41,6 +41,7 @@ export default function Home() {
   const [panel, setPanel] = useState<"closed" | "stats" | "explore" | "setup">("closed");
   const [copied, setCopied] = useState("");
   const [widgetMode, setWidgetMode] = useState(false);
+  const serverVersion = useRef<string | null>(null);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setWidgetMode(new URLSearchParams(window.location.search).has("widget")));
@@ -50,6 +51,12 @@ export default function Home() {
         const token = new URLSearchParams(window.location.search).get("token");
         const response = await fetch(`/api/metrics${token ? `?token=${encodeURIComponent(token)}` : ""}`, { cache: "no-store" });
         if (!response.ok) throw new Error("offline");
+        const nextVersion = response.headers.get("x-cloudy-version");
+        if (nextVersion && serverVersion.current && nextVersion !== serverVersion.current) {
+          window.location.reload();
+          return;
+        }
+        if (nextVersion) serverVersion.current = nextVersion;
         const next = await response.json() as Metric;
         if (mounted) { setData(next); setLive(true); }
       } catch { if (mounted) setLive(false); }
