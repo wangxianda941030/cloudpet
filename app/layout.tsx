@@ -14,10 +14,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "奶崽 Naizai｜住在桌面的服务器小宠物",
-  description: "用一只会捧腹大笑、冒汗和报警的桌面宠物，看懂你的 Linux 服务器。",
+  description: "用一只会变换颜色的桌面宠物，看懂你的 Linux 服务器。",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/naizai-icon.png",
+    shortcut: "/naizai-icon.png",
+    apple: "/naizai-icon.png",
   },
 };
 

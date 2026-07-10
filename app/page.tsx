@@ -27,6 +27,19 @@ const demo: Metric = {
   inventory: { scanRoots: ["/var/www", "/srv", "/opt", "/home"], refreshSeconds: 60, readOnly: true, fileContents: false },
 };
 
+const statePreviews = [
+  { id: "idle", label: "摸鱼", title: "绿色奶崽", detail: "CPU ＜ 20%，内存 ＜ 45%。" },
+  { id: "working", label: "正在干活", title: "黄色奶崽", detail: "有任务在跑，一切仍很稳。" },
+  { id: "busy", label: "忙碌", title: "红色奶崽", detail: "负载较高，需要多看一眼。" },
+] as const;
+type PreviewState = typeof statePreviews[number]["id"];
+
+const previewMoods = {
+  idle: { id: "happy", title: "今天可以安心摸鱼", message: "绿色奶崽：现在没什么活，服务器很轻松。" },
+  working: { id: "busy", title: "正在认真干活中", message: "黄色奶崽：有任务在跑，但仍在安全范围。" },
+  busy: { id: "danger", title: "今天真的有点忙！", message: "红色奶崽：负载较高，需要多看一眼。" },
+} as const;
+
 const gb = (n: number) => `${(n / 1024 ** 3).toFixed(1)} GB`;
 const fileSize = (n = 0) => n < 1024 ? `${n} B` : n < 1024 ** 2 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1024 ** 2).toFixed(1)} MB`;
 const uptime = (seconds: number) => `${Math.floor(seconds / 86400)} 天 ${Math.floor((seconds % 86400) / 3600)} 小时`;
@@ -42,6 +55,7 @@ export default function Home() {
   const [panel, setPanel] = useState<"closed" | "stats" | "explore" | "setup">("closed");
   const [copied, setCopied] = useState("");
   const [widgetMode, setWidgetMode] = useState(false);
+  const [previewState, setPreviewState] = useState<PreviewState | null>(null);
   const serverVersion = useRef<string | null>(null);
 
   useEffect(() => {
@@ -76,11 +90,13 @@ export default function Home() {
 
   const mood = useMemo(() => {
     if (!live) return { id: "offline", title: loading ? "我在找服务器…" : "还没牵上线呢", message: loading ? "稍等我闻一闻网络。" : "连接 Linux 服务器后，我就能替你守着它。", face: "· ᴗ ·" };
-    const max = Math.max(data.cpu.usage, data.memory.percent, data.disk.percent);
-    if (max >= 90) return { id: "danger", title: "主人，快看这里！", message: "有一项资源快用完了，我有点担心。", face: "> ︿ <" };
-    if (max >= 75) return { id: "busy", title: "今天有点忙呀", message: "服务器正在努力工作，我会继续盯着。", face: "• ︵ •" };
-    return { id: "happy", title: "一切都软乎乎的", message: `你的服务器已平稳运行 ${uptime(data.meta.uptime)}。`, face: "• ᴗ •" };
+    const isBusy = data.cpu.usage >= 75 || data.memory.percent >= 80 || data.disk.percent >= 90;
+    const isWorking = data.cpu.usage >= 20 || data.memory.percent >= 45;
+    if (isBusy) return { id: "danger", title: "今天真的有点忙！", message: "负载已经比较高了，记得来看看我。", face: "> ︿ <" };
+    if (isWorking) return { id: "busy", title: "正在认真干活中", message: `CPU ${data.cpu.usage.toFixed(0)}% · 内存 ${data.memory.percent.toFixed(0)}%，都还在安全范围。`, face: "• ︵ •" };
+    return { id: "happy", title: "今天可以安心摸鱼", message: `服务器已平稳运行 ${uptime(data.meta.uptime)}。`, face: "• ᴗ •" };
   }, [data, live, loading]);
+  const displayMood = previewState ? previewMoods[previewState] : mood;
 
   const copy = async (id: string, value: string) => {
     try { await navigator.clipboard.writeText(value); }
@@ -103,24 +119,29 @@ export default function Home() {
       <section className="concept-copy">
         <span className="concept-pill">奶崽 Naizai · 服务器桌面宠物</span>
         <h1>把服务器状态，<br />养成一只桌面小宠物。</h1>
-        <p>它不要求你看懂复杂图表。开心、冒汗、困倦或掉线，就是服务器正在发生的事。</p>
-        <div className="legend"><span><i className="dot green" />健康</span><span><i className="dot amber" />忙碌</span><span><i className="dot red" />需要处理</span></div>
+        <p>它不要求你看懂复杂图表。绿色摸鱼、黄色干活、红色忙碌，就是服务器正在发生的事。</p>
+        <div className="state-previews" aria-label="奶崽状态预览">
+          {statePreviews.map((state) => <button type="button" className={`state-preview ${state.id} ${previewState === state.id ? "selected" : ""}`} key={state.id} aria-pressed={previewState === state.id} onClick={() => setPreviewState(previewState === state.id ? null : state.id)}>
+            <div className="preview-pet">
+              <Image src="/nailong-idle-v2.png" width={78} height={78} alt={`${state.label}状态的奶崽`} draggable={false} unoptimized />
+            </div>
+            <div><span><i className="dot" />{state.label}</span><b>{state.title}</b><small>{state.detail}</small></div>
+          </button>)}
+        </div>
       </section>
 
-      <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="奶崽服务器桌面宠物">
+      <section className={`pet-widget ${displayMood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="奶崽服务器桌面宠物">
         <header className="widget-bar">
           <div><span className="tiny-logo">●</span><b>奶崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
           <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭奶崽" onClick={closeWindow}>×</button></div>
         </header>
 
         <div className="pet-stage">
-          <div className="speech"><b>{mood.title}</b><span>{mood.message}</span></div>
+          <div className="speech"><b>{displayMood.title}</b><span>{displayMood.message}</span></div>
           <button className="pet nailong-pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击奶龙查看服务器状态">
             <Image className="nailong-sprite nailong-idle" src="/nailong-idle-v2.png" width={205} height={205} alt="像素奶龙桌面宠物" draggable={false} priority unoptimized />
             <Image className="nailong-sprite nailong-laugh" src="/nailong-laugh-v2.png" width={205} height={205} alt="捧腹大笑的像素奶龙" draggable={false} priority unoptimized />
-            {mood.id === "busy" && <i className="sweat">◜</i>}
-            {mood.id === "danger" && <i className="alert">!</i>}
-            {mood.id === "offline" && <i className="sleepy">zZ</i>}
+            {displayMood.id === "offline" && <i className="sleepy">zZ</i>}
           </button>
           <div className="quick-stats"><span><b>{data.cpu.usage.toFixed(0)}%</b> CPU</span><span><b>{data.memory.percent.toFixed(0)}%</b> 内存</span><span><b>{data.disk.percent.toFixed(0)}%</b> 磁盘</span></div>
         </div>
@@ -157,15 +178,16 @@ export default function Home() {
         </section>}
 
         {panel === "setup" && <section className="drawer setup-drawer">
-          <div className="drawer-title"><div><small>第一次见面</small><h2>一条命令住进服务器</h2></div><span className="status-tag">主流 Linux</span></div>
-          <p className="setup-intro">默认使用原生模式：Python 采集器 + Node Web 服务由 systemd 管理，不需要 Docker。支持 x86_64 与 arm64，也不需要把 SSH、数据库密码或云密钥交给网页。</p>
+          <div className="drawer-title"><div><small>第一次见面</small><h2>服务器和电脑，各装一次</h2></div><span className="status-tag">主流 Linux</span></div>
+          <p className="setup-intro">腾讯云服务器安装监控服务；自己的 Windows 或 macOS 电脑运行桌面奶崽。两边通过系统 SSH 连接，不需要 Docker，也无需额外开放 6121 防火墙端口。</p>
           <div className="system-tags"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>Fedora</span><span>TencentOS</span><span>openEuler</span></div>
           <ol>
-            <li><span>1</span><div><b>从 GitHub 原生安装</b><p>在服务器终端粘贴这一整行：</p><div className="command"><code>git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh</code><button onClick={() => copy("install", "git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
-            <li><span>2</span><div><b>桌面宠物连接一次</b><p>腾讯云防火墙放行 TCP 6121，把安装完成后显示的整条私密地址粘贴进桌面版：</p><div className="command"><code>http://公网IP:6121/?token=自动生成</code><button onClick={() => copy("url", "http://公网IP:6121/?token=自动生成")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
-            <li><span>3</span><div><b>不想养了，一行卸载</b><p>在 cloudpet 目录中执行，会停止服务并删除应用文件和克隆目录：</p><div className="command"><code>sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet</code><button onClick={() => copy("uninstall", "sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet")}>{copied === "uninstall" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>1</span><div><b>先在自己的电脑安装桌面奶崽</b><p>在 Windows 下载 Naizai-Setup.exe；在 macOS 下载对应芯片的 .dmg。安装后先把奶崽打开：</p><a className="release-link" href="https://github.com/wangxianda941030/cloudpet/releases/latest" target="_blank" rel="noreferrer">打开 GitHub Releases ↗</a><p>还没有安装包时，也可以先用源码版（需要 Git 和 Node.js 22）：</p><div className="command"><code>git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet/desktop && npm install && npm start</code><button onClick={() => copy("desktop", "git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet/desktop && npm install && npm start")}>{copied === "desktop" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>2</span><div><b>再安装到腾讯云服务器</b><p>打开腾讯云的服务器终端粘贴，不要在自己的电脑运行。源码会克隆到服务器并安装到 /opt/cloudy：</p><div className="command"><code>git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh</code><button onClick={() => copy("install", "git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>3</span><div><b>粘贴奶崽配对码</b><p>服务器安装完成后会显示一条 naizai:// 配对码。粘贴进桌面版即可，不保存服务器密码或私钥：</p><div className="command"><code>naizai://ubuntu@公网IP?token=自动生成</code><button onClick={() => copy("url", "naizai://ubuntu@公网IP?token=自动生成")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>4</span><div><b>不想养了，一行卸载</b><p>回到服务器的 cloudpet 目录执行，会停止服务并删除服务器应用文件和克隆目录：</p><div className="command"><code>sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet</code><button onClick={() => copy("uninstall", "sudo sh uninstall-native.sh && cd .. && rm -rf cloudpet")}>{copied === "uninstall" ? "好啦" : "复制"}</button></div></div></li>
           </ol>
-          <div className="privacy-note">🔒 公网只开放网页端口 6121；采集器 6120 只允许本机访问。安装器会自动生成私密令牌。完全清理专用账户可再执行 <b>sudo userdel cloudy</b>。</div>
+          <div className="privacy-note">🔒 默认无需修改腾讯云防火墙：6120 和 6121 都只监听服务器本机。奶崽只调用系统 SSH 与你已有的密钥；如使用密码登录，请先在系统终端配置 SSH 密钥。完全清理专用账户可再执行 <b>sudo userdel cloudy</b>。</div>
         </section>}
 
         <footer className="widget-footer"><span className={live ? "connection live" : "connection"}><i />{live ? "已连接真实服务器" : "未连接 · 正在展示示例"}</span><span suppressHydrationWarning>{new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span></footer>

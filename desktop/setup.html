@@ -12,12 +12,12 @@
   <main class="card">
     <button class="close" id="close" aria-label="关闭">×</button>
     <div class="pet">• ᴗ •</div>
-    <h1>你的奶崽住在哪里？</h1>
-    <p>填写一次服务器地址，以后打开电脑它就会自动回来。</p>
-    <label class="label" for="server">服务器地址</label>
-    <div class="input-row"><input id="server" placeholder="粘贴安装器显示的完整私密地址" autofocus /><button class="connect" id="connect">连接</button></div>
+    <h1>把奶崽牵回桌面</h1>
+    <p>粘贴安装器显示的配对码，奶崽会通过系统 SSH 建立私密通道。</p>
+    <label class="label" for="server">奶崽配对码</label>
+    <div class="input-row"><input id="server" placeholder="naizai://ubuntu@公网IP?token=…" autofocus /><button class="connect" id="connect">连接</button></div>
     <div class="error" id="error"></div>
-    <div class="hint">请粘贴包含公网 IP 和 token 的完整地址。<b>10.x、172.16–31.x、192.168.x</b> 是服务器内网地址，普通家庭网络无法直接连接。</div>
+    <div class="hint"><b>不用开放 6121 防火墙。</b>桌面端只调用电脑自带的 SSH，不保存密码或私钥。首次连接前，请先确认系统终端可以用密钥执行 <b>ssh 用户名@公网IP</b>。</div>
     <div class="systems"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>TencentOS</span><span>openEuler</span></div>
   </main>
   <script>

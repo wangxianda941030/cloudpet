@@ -11,6 +11,8 @@ if ! command -v systemctl >/dev/null 2>&1; then echo "原生模式需要 systemd
 SOURCE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 INSTALL_DIR=/opt/cloudy
 RUNTIME_DIR=$INSTALL_DIR/.runtime/node
+WEB_BIND=${NAIZAI_WEB_BIND:-127.0.0.1}
+case "$WEB_BIND" in 127.0.0.1|localhost|0.0.0.0|::1) ;; *) echo "NAIZAI_WEB_BIND 只支持 127.0.0.1、localhost、::1 或 0.0.0.0。"; exit 1 ;; esac
 
 install_dependencies() {
   if command -v apt-get >/dev/null 2>&1; then
@@ -103,7 +105,7 @@ Type=simple
 User=cloudy
 WorkingDirectory=/opt/cloudy
 Environment=NODE_ENV=production
-Environment=HOST=0.0.0.0
+Environment=HOST=__NAIZAI_WEB_BIND__
 Environment=PORT=6121
 Environment=CLOUDY_COLLECTOR_URL=http://127.0.0.1:6120/metrics
 Environment=CLOUDY_ACCESS_TOKEN=__CLOUDY_ACCESS_TOKEN__
@@ -120,6 +122,7 @@ WantedBy=multi-user.target
 SERVICE
 sed -i "s/__CLOUDY_ACCESS_TOKEN__/$ACCESS_TOKEN/" /etc/systemd/system/cloudy-web.service
 sed -i "s/__CLOUDY_APP_VERSION__/$APP_VERSION/" /etc/systemd/system/cloudy-web.service
+sed -i "s/__NAIZAI_WEB_BIND__/$WEB_BIND/" /etc/systemd/system/cloudy-web.service
 
 systemctl daemon-reload
 systemctl enable cloudy-agent cloudy-web
@@ -127,10 +130,20 @@ systemctl restart cloudy-agent cloudy-web
 
 PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true)
+PAIR_USER=${SUDO_USER:-root}
 echo ""
 echo "✓ 奶崽已通过原生模式启动（无 Docker）"
-echo "  桌面端请填写：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
-echo "  仅同一腾讯云内网可用：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
+if [ "$WEB_BIND" = "127.0.0.1" ] || [ "$WEB_BIND" = "localhost" ]; then
+  echo "  复制这条配对码到桌面端（走 SSH，无需开放 6121）："
+  echo "  naizai://${PAIR_USER}@${PUBLIC_IP:-你的服务器公网IP}?token=$ACCESS_TOKEN"
+  echo ""
+  echo "  也可在自己的电脑运行：ssh -N -L 6121:127.0.0.1:6121 ${PAIR_USER}@${PUBLIC_IP:-你的服务器公网IP}"
+  echo "  然后打开：http://127.0.0.1:6121/?token=$ACCESS_TOKEN"
+else
+  echo "  高级公网模式：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
+  echo "  内网地址：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
+fi
 echo ""
-echo "腾讯云防火墙/安全组只需放行 TCP 6121；采集器 6120 仅监听本机。请勿公开上面的私密访问地址。"
+echo "默认模式下 6120/6121 均仅监听本机，无需修改腾讯云防火墙。请勿公开上面的私密配对码。"
+echo "如确需旧版公网直连：NAIZAI_WEB_BIND=0.0.0.0 sudo sh install-native.sh，并自行放行 TCP 6121。"
 echo "查看状态：systemctl status cloudy-agent cloudy-web"

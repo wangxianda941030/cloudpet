@@ -33,7 +33,7 @@
 git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sudo sh install-native.sh
 ```
 
-原生安装器会下载并校验独立的 Node.js 22 运行时，使用系统 Python 运行只读采集器，并创建两个 systemd 服务。公网只需放行 TCP `6121`，采集器端口 `6120` 仅监听 `127.0.0.1`。安装器会自动生成访问令牌并打印完整私密地址，将整条地址粘贴到桌面宠物即可。
+原生安装器会下载并校验独立的 Node.js 22 运行时，使用系统 Python 运行只读采集器，并创建两个 systemd 服务。默认情况下 `6120` 与 `6121` 都只监听 `127.0.0.1`，无需在腾讯云防火墙额外开放端口。安装器会打印一条 `naizai://` 配对码；桌面宠物调用系统 SSH 建立本地隧道，不保存服务器密码或私钥。
 
 > 品牌已经升级为“奶崽 Naizai”。为保证已经部署的用户可以无感更新，当前版本继续沿用 `/opt/cloudy`、`cloudy-agent`、`cloudy-web` 等内部标识；后续安装器会提供自动迁移，不需要手工删除旧服务。
 
@@ -45,9 +45,9 @@ git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sud
 sudo sh install.sh
 ```
 
-浏览器访问：使用安装器输出的完整地址，例如 `http://你的服务器公网IP:6121/?token=自动生成的令牌`。
+推荐连接：把安装器输出的 `naizai://用户名@公网IP?token=…` 配对码粘贴进桌面版。服务器只需保持原有 SSH 端口可访问，不需要开放 TCP `6121`。
 
-腾讯云轻量应用服务器需要在控制台的「防火墙」中放行 TCP `6121` 端口。访问令牌会挡住未授权请求；需要更高安全等级时，可以再叠加 Tailscale、Cloudflare Access 或 HTTPS 反向代理。
+如果确实需要旧版公网直连，可执行 `NAIZAI_WEB_BIND=0.0.0.0 sudo sh install-native.sh`，随后自行在防火墙放行 TCP `6121`；此模式建议再叠加 HTTPS、Tailscale 或 Cloudflare Access。
 
 ## 更新与卸载
 
@@ -74,7 +74,7 @@ sudo userdel cloudy
 
 - 采集器只读取 `/proc`、磁盘容量和 Docker 状态，不读取数据库业务数据。
 - 默认不需要数据库账号、SSH 密钥或云厂商密钥。
-- 原生模式的采集端口只监听 `127.0.0.1`，网页接口使用随机访问令牌。
+- 原生模式的采集端口和网页端口默认都只监听 `127.0.0.1`，桌面端通过系统 SSH 本地隧道访问。
 - 服务器地图只返回项目结构元数据；SQLite 以只读模式打开，其他数据库不自动登录。
 - Docker Socket 以只读方式挂载；尽管如此，它仍是高权限接口，请勿运行来源不明的分支或镜像。
 - 请不要公开或截图分享安装器输出的私密访问地址。
@@ -113,6 +113,8 @@ npm run dev
 ## 桌面宠物
 
 服务器端启动后，可以使用 `desktop/` 中的 Electron 壳将奶崽固定在 macOS 或 Windows 桌面最上层。具体步骤见 `desktop/README.md`。
+
+推送 `v*` Git 标签后，GitHub Actions 会自动生成 Windows x64 的 `Naizai-Setup.exe`，以及 macOS Apple Silicon/Intel 的 `.dmg` 和 `.zip`，并发布到 GitHub Releases。安装包、任务栏和网页 favicon 均使用奶崽专属像素图标。
 
 ## License
 

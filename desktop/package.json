@@ -1,12 +1,26 @@
 {
   "name": "naizai-desktop",
+  "productName": "奶崽 Naizai",
   "version": "0.1.0",
+  "description": "住在桌面的 Linux 服务器小宠物",
+  "author": "Naizai contributors",
+  "license": "MIT",
+  "repository": "https://github.com/wangxianda941030/cloudpet",
   "private": true,
   "main": "main.cjs",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "make:windows": "electron-forge make --platform=win32 --arch=x64",
+    "make:mac": "electron-forge make --platform=darwin"
   },
   "devDependencies": {
-    "electron": "43.1.0"
+    "@electron-forge/cli": "^7.11.2",
+    "@electron-forge/maker-dmg": "^7.11.2",
+    "@electron-forge/maker-squirrel": "^7.11.2",
+    "@electron-forge/maker-zip": "^7.11.2",
+    "electron": "43.1.0",
+    "png2icons": "^2.0.1"
   }
 }
