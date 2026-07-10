@@ -90,10 +90,9 @@ export default function Home() {
     setCopied(id); window.setTimeout(() => setCopied(""), 1600);
   };
 
-  const windowAction = (action: "minimize" | "close") => {
-    const desktopWindow = window as typeof window & { cloudy?: { minimize?: () => void; close?: () => void } };
-    const handler = desktopWindow.cloudy?.[action];
-    if (handler) handler();
+  const closeWindow = () => {
+    const desktopWindow = window as typeof window & { cloudy?: { close?: () => void } };
+    if (desktopWindow.cloudy?.close) desktopWindow.cloudy.close();
     else setPanel("closed");
   };
 
@@ -110,7 +109,7 @@ export default function Home() {
       <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="云崽服务器桌面宠物">
         <header className="widget-bar">
           <div><span className="tiny-logo">☁</span><b>云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
-          <div className="window-actions"><button aria-label="最小化云崽" onClick={() => windowAction("minimize")}>—</button><button aria-label="关闭云崽" onClick={() => windowAction("close")}>×</button></div>
+          <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭云崽" onClick={closeWindow}>×</button></div>
         </header>
 
         <div className="pet-stage">

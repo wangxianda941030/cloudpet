@@ -4,7 +4,6 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("cloudy", {
   connect: (serverUrl) => ipcRenderer.invoke("cloudy:connect", serverUrl),
   setExpanded: (expanded) => ipcRenderer.send("cloudy:set-expanded", Boolean(expanded)),
-  minimize: () => ipcRenderer.send("cloudy:minimize"),
   close: () => ipcRenderer.send("cloudy:close"),
 });
 
@@ -32,7 +31,10 @@ window.addEventListener("DOMContentLoaded", () => {
     if (label === "关闭面板" || label === "关闭云崽") {
       event.preventDefault(); event.stopImmediatePropagation(); ipcRenderer.send("cloudy:close");
     } else if (label === "收起" || label === "最小化云崽") {
-      event.preventDefault(); event.stopImmediatePropagation(); ipcRenderer.send("cloudy:minimize");
+      event.preventDefault(); event.stopImmediatePropagation();
+      const activePanelButton = Array.from(document.querySelectorAll(".widget-buttons button")).find((item) => item.textContent?.trim() === "收起");
+      if (activePanelButton instanceof HTMLElement) activePanelButton.click();
+      else ipcRenderer.send("cloudy:set-expanded", false);
     }
   }, true);
 });
