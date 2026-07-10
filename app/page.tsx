@@ -42,7 +42,8 @@ export default function Home() {
     let mounted = true;
     const load = async () => {
       try {
-        const response = await fetch("/api/metrics", { cache: "no-store" });
+        const token = new URLSearchParams(window.location.search).get("token");
+        const response = await fetch(`/api/metrics${token ? `?token=${encodeURIComponent(token)}` : ""}`, { cache: "no-store" });
         if (!response.ok) throw new Error("offline");
         const next = await response.json() as Metric;
         if (mounted) { setData(next); setLive(true); }
@@ -110,13 +111,13 @@ export default function Home() {
 
         {panel === "setup" && <section className="drawer setup-drawer">
           <div className="drawer-title"><div><small>第一次见面</small><h2>一条命令住进服务器</h2></div><span className="status-tag">主流 Linux</span></div>
-          <p className="setup-intro">云崽基于 Docker 运行，支持 x86_64 与 arm64。安装器会识别系统、自动补齐 Docker，不需要把 SSH、数据库密码或云密钥交给网页。</p>
+          <p className="setup-intro">默认使用原生模式：Python 采集器 + Node Web 服务由 systemd 管理，不需要 Docker。支持 x86_64 与 arm64，也不需要把 SSH、数据库密码或云密钥交给网页。</p>
           <div className="system-tags"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>Fedora</span><span>TencentOS</span><span>openEuler</span></div>
           <ol>
-            <li><span>1</span><div><b>从 GitHub 安装</b><p>公开仓库后，在服务器终端粘贴这一整行：</p><div className="command"><code>git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install.sh</code><button onClick={() => copy("install", "git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
-            <li><span>2</span><div><b>桌面宠物连接一次</b><p>腾讯云防火墙放行 TCP 6121，首次启动桌面版只填：</p><div className="command"><code>你的服务器公网IP:6121</code><button onClick={() => copy("url", "你的服务器公网IP:6121")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>1</span><div><b>从 GitHub 原生安装</b><p>公开仓库后，在服务器终端粘贴这一整行：</p><div className="command"><code>git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install-native.sh</code><button onClick={() => copy("install", "git clone https://github.com/你的用户名/cloudy.git && cd cloudy && sudo sh install-native.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>2</span><div><b>桌面宠物连接一次</b><p>腾讯云防火墙放行 TCP 6121，把安装完成后显示的整条私密地址粘贴进桌面版：</p><div className="command"><code>http://公网IP:6121/?token=自动生成</code><button onClick={() => copy("url", "http://公网IP:6121/?token=自动生成")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
           </ol>
-          <div className="privacy-note">🔒 只读取系统状态，不读取数据库业务内容。</div>
+          <div className="privacy-note">🔒 公网只开放网页端口 6121；采集器 6120 只允许本机访问。安装器还会自动生成私密访问令牌。Docker 仍可通过 <b>sudo sh install.sh</b> 作为可选方案。</div>
         </section>}
 
         <footer className="widget-footer"><span className={live ? "connection live" : "connection"}><i />{live ? "已连接真实服务器" : "未连接 · 正在展示示例"}</span><span suppressHydrationWarning>{new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span></footer>

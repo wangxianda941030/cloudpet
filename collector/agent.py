@@ -125,5 +125,6 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args): pass
 
 if __name__ == "__main__":
-    port=int(os.getenv("PORT","6120")); print(f"Cloudy collector listening on :{port}")
-    ThreadingHTTPServer(("0.0.0.0",port),Handler).serve_forever()
+    port=int(os.getenv("PORT","6120")); bind=os.getenv("CLOUDY_BIND","0.0.0.0")
+    print(f"Cloudy collector listening on {bind}:{port}")
+    ThreadingHTTPServer((bind,port),Handler).serve_forever()
