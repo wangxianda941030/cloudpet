@@ -67,6 +67,12 @@ export default function Home() {
     return () => { mounted = false; window.cancelAnimationFrame(frame); window.clearInterval(timer); };
   }, []);
 
+  useEffect(() => {
+    if (!widgetMode) return;
+    const desktopWindow = window as typeof window & { cloudy?: { setExpanded?: (expanded: boolean) => void } };
+    desktopWindow.cloudy?.setExpanded?.(panel !== "closed");
+  }, [panel, widgetMode]);
+
   const mood = useMemo(() => {
     if (!live) return { id: "offline", title: loading ? "我在找服务器…" : "还没牵上线呢", message: loading ? "稍等我闻一闻网络。" : "连接 Linux 服务器后，我就能替你守着它。", face: "· ᴗ ·" };
     const max = Math.max(data.cpu.usage, data.memory.percent, data.disk.percent);
@@ -118,7 +124,7 @@ export default function Home() {
           <div className="quick-stats"><span><b>{data.cpu.usage.toFixed(0)}%</b> CPU</span><span><b>{data.memory.percent.toFixed(0)}%</b> 内存</span><span><b>{data.disk.percent.toFixed(0)}%</b> 磁盘</span></div>
         </div>
 
-        <div className="widget-buttons"><button className="primary" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")}>{panel === "stats" ? "收起" : "状态"}</button><button className="explore-button" onClick={() => setPanel(panel === "explore" ? "closed" : "explore")}>{panel === "explore" ? "收起" : "服务器地图"}</button><button className="ghost" onClick={() => setPanel(panel === "setup" ? "closed" : "setup")}>{live ? "接入" : "连接"}</button></div>
+        <div className="widget-buttons"><button className="primary" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")}>{panel === "stats" ? "收起" : "状态"}</button><button className="explore-button" onClick={() => setPanel(panel === "explore" ? "closed" : "explore")}>{panel === "explore" ? "收起" : "服务器地图"}</button><button className="ghost" onClick={() => setPanel(panel === "setup" ? "closed" : "setup")}>{panel === "setup" ? "收起" : live ? "接入" : "连接"}</button></div>
 
         {panel === "stats" && <section className="drawer stats-drawer">
           <div className="drawer-title"><div><small>实时状态</small><h2>{data.meta.hostname}</h2></div><span className={live ? "status-tag online" : "status-tag"}>{live ? "每 5 秒更新" : "演示数据"}</span></div>

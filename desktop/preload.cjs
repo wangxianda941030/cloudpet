@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("cloudy", {
   connect: (serverUrl) => ipcRenderer.invoke("cloudy:connect", serverUrl),
+  setExpanded: (expanded) => ipcRenderer.send("cloudy:set-expanded", Boolean(expanded)),
   minimize: () => ipcRenderer.send("cloudy:minimize"),
   close: () => ipcRenderer.send("cloudy:close"),
 });

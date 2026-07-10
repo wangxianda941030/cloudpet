@@ -5,6 +5,22 @@ const path = require("node:path");
 
 let mainWindow;
 
+function resizeWindow(expanded) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  const display = screen.getDisplayMatching(mainWindow.getBounds());
+  const area = display.workArea;
+  const width = expanded ? 430 : 230;
+  const height = expanded ? Math.min(680, area.height - 36) : 210;
+  mainWindow.setResizable(expanded);
+  mainWindow.setMinimumSize(expanded ? 390 : 210, expanded ? 500 : 180);
+  mainWindow.setBounds({
+    width,
+    height,
+    x: area.x + area.width - width - 18,
+    y: area.y + area.height - height - 18,
+  }, true);
+}
+
 function normalizeTarget(value) {
   let raw = String(value || "").trim().replace(/\/$/, "");
   if (raw && !/^https?:\/\//i.test(raw)) raw = `http://${raw}`;
@@ -67,6 +83,7 @@ async function openTarget(value) {
 }
 
 function showSetup(message = "", serverUrl = "") {
+  resizeWindow(true);
   return mainWindow.loadFile(path.join(__dirname, "setup.html"), {
     query: { error: message, server: serverUrl },
   });
@@ -103,6 +120,7 @@ ipcMain.handle("cloudy:connect", async (_event, value) => {
 });
 ipcMain.on("cloudy:minimize", () => mainWindow?.minimize());
 ipcMain.on("cloudy:close", () => mainWindow?.close());
+ipcMain.on("cloudy:set-expanded", (_event, expanded) => resizeWindow(Boolean(expanded)));
 
 app.whenReady().then(() => {
   createWindow();
