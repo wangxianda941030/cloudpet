@@ -1,0 +1,25 @@
+services:
+  dashboard:
+    build: .
+    restart: unless-stopped
+    expose: ["3000"]
+  collector:
+    build: ./collector
+    restart: unless-stopped
+    pid: host
+    environment:
+      YUNKAN_PROC: /host/proc
+      YUNKAN_ROOT: /host/root
+    volumes:
+      - /proc:/host/proc:ro
+      - /:/host/root:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    expose: ["6120"]
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [dashboard, collector]
+    ports:
+      - "6121:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
