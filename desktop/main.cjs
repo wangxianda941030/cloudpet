@@ -12,6 +12,7 @@ function resizeWindow(expanded) {
   const width = expanded ? 430 : 230;
   const height = expanded ? Math.min(680, area.height - 36) : 210;
   mainWindow.setResizable(expanded);
+  if (typeof mainWindow.setHasShadow === "function") mainWindow.setHasShadow(expanded);
   mainWindow.setMinimumSize(expanded ? 390 : 210, expanded ? 500 : 180);
   mainWindow.setBounds({
     width,

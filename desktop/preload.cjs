@@ -14,6 +14,7 @@ window.addEventListener("DOMContentLoaded", () => {
     .widget-mode .pet-widget:not(.expanded) .widget-bar,.widget-mode .pet-widget:not(.expanded) .speech,.widget-mode .pet-widget:not(.expanded) .quick-stats,.widget-mode .pet-widget:not(.expanded) .widget-buttons,.widget-mode .pet-widget:not(.expanded) .widget-footer{display:none!important}
     .widget-mode .pet-widget:not(.expanded) .pet-stage{height:100vh!important;min-height:0!important;padding:0!important;display:grid!important;place-items:center!important;-webkit-app-region:drag}
     .widget-mode .pet-widget:not(.expanded) .pet{margin:0!important;-webkit-app-region:no-drag}
+    .widget-mode .pet:focus{outline:none!important}
   `;
   document.head.appendChild(compactStyle);
 
