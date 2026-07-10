@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cloudy collector: read-only Linux and Docker metrics, stdlib only."""
+"""Naizai collector: read-only Linux and Docker metrics, stdlib only."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json, os, platform, shutil, socket, sqlite3, subprocess, time, urllib.parse
@@ -258,5 +258,5 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     port=int(os.getenv("PORT","6120")); bind=os.getenv("CLOUDY_BIND","0.0.0.0")
-    print(f"Cloudy collector listening on {bind}:{port}")
+    print(f"Naizai collector listening on {bind}:{port}")
     ThreadingHTTPServer((bind,port),Handler).serve_forever()

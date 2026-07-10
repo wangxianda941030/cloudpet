@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>连接云崽</title>
+  <title>连接奶崽</title>
   <style>
     *{box-sizing:border-box}body{margin:0;min-height:100vh;padding:18px;background:transparent;color:#2b2925;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.card{position:relative;min-height:500px;padding:26px;border:1px solid rgba(255,255,255,.9);border-radius:24px;background:rgba(255,255,255,.96);box-shadow:0 24px 70px rgba(67,54,38,.18);-webkit-app-region:drag}.close{position:absolute;right:18px;top:18px;width:28px;height:28px;border:0;border-radius:8px;background:#f1efeb;color:#8d8881;cursor:pointer;-webkit-app-region:no-drag}.pet{width:110px;height:86px;margin:36px auto 18px;border-radius:55% 55% 48% 48%;background:#deedff;display:grid;place-items:center;color:#3d607f;font-size:17px;font-weight:800;box-shadow:0 -18px 0 -3px #eaf4ff,28px -8px 0 -10px #e5f1ff,-28px -7px 0 -10px #e5f1ff}h1{margin:0;text-align:center;font-size:25px;letter-spacing:-.04em}p{margin:9px auto 24px;max-width:290px;text-align:center;color:#77716a;font-size:12px;line-height:1.6}.label{display:block;margin-bottom:7px;font-size:11px;font-weight:700}.input-row{display:flex;gap:7px;-webkit-app-region:no-drag}input{min-width:0;flex:1;height:43px;padding:0 12px;border:1px solid rgba(0,0,0,.12);border-radius:10px;outline:0;font-size:12px}input:focus{border-color:#6ea9ee;box-shadow:0 0 0 3px rgba(110,169,238,.15)}button.connect{width:86px;border:0;border-radius:10px;background:#3679c7;color:#fff;font-size:11px;font-weight:750;cursor:pointer}.hint{margin-top:15px;padding:12px;border-radius:11px;background:#fff6da;color:#806b3c;font-size:9px;line-height:1.6}.systems{display:flex;flex-wrap:wrap;gap:5px;margin-top:16px}.systems span{padding:5px 8px;border-radius:999px;background:#f2f5f8;color:#747a80;font-size:8px}.error{min-height:18px;margin-top:8px;color:#d84b49;font-size:9px}
   </style>
@@ -12,7 +12,7 @@
   <main class="card">
     <button class="close" id="close" aria-label="关闭">×</button>
     <div class="pet">• ᴗ •</div>
-    <h1>你的云崽住在哪里？</h1>
+    <h1>你的奶崽住在哪里？</h1>
     <p>填写一次服务器地址，以后打开电脑它就会自动回来。</p>
     <label class="label" for="server">服务器地址</label>
     <div class="input-row"><input id="server" placeholder="粘贴安装器显示的完整私密地址" autofocus /><button class="connect" id="connect">连接</button></div>
@@ -23,7 +23,7 @@
   <script>
     const input=document.getElementById('server'),error=document.getElementById('error'),button=document.getElementById('connect');
     const params=new URLSearchParams(location.search);input.value=params.get('server')||'';error.textContent=params.get('error')||'';
-    async function connect(){error.textContent='正在找云崽…';button.disabled=true;const result=await window.cloudy.connect(input.value);if(!result.ok){error.textContent=result.message;button.disabled=false}}
+    async function connect(){error.textContent='正在找奶崽…';button.disabled=true;const result=await window.cloudy.connect(input.value);if(!result.ok){error.textContent=result.message;button.disabled=false}}
     button.addEventListener('click',connect);input.addEventListener('keydown',(event)=>{if(event.key==='Enter')connect()});document.getElementById('close').addEventListener('click',()=>window.cloudy.close());
   </script>
 </body>

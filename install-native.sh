@@ -24,7 +24,7 @@ install_dependencies() {
   fi
 }
 
-echo "正在准备云崽原生运行环境（不使用 Docker）…"
+echo "正在准备奶崽原生运行环境（不使用 Docker）…"
 install_dependencies
 
 NOLOGIN=$(command -v nologin 2>/dev/null || printf '/sbin/nologin')
@@ -71,7 +71,7 @@ fi
 
 cat > /etc/systemd/system/cloudy-agent.service <<'SERVICE'
 [Unit]
-Description=Cloudy server metrics collector
+Description=Naizai server metrics collector
 After=network.target
 
 [Service]
@@ -94,7 +94,7 @@ SERVICE
 
 cat > /etc/systemd/system/cloudy-web.service <<'SERVICE'
 [Unit]
-Description=Cloudy desktop pet web service
+Description=Naizai desktop pet web service
 After=network.target cloudy-agent.service
 Requires=cloudy-agent.service
 
@@ -128,7 +128,7 @@ systemctl restart cloudy-agent cloudy-web
 PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true)
 echo ""
-echo "✓ 云崽已通过原生模式启动（无 Docker）"
+echo "✓ 奶崽已通过原生模式启动（无 Docker）"
 echo "  桌面端请填写：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
 echo "  仅同一腾讯云内网可用：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
 echo ""

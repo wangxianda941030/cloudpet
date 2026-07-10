@@ -101,16 +101,16 @@ export default function Home() {
     <main suppressHydrationWarning className={`desktop-scene ${widgetMode ? "widget-mode" : ""}`}>
       <div className="wallpaper-orb orb-one" /><div className="wallpaper-orb orb-two" />
       <section className="concept-copy">
-        <span className="concept-pill">云崽 Cloudy · 桌面宠物原型</span>
+        <span className="concept-pill">奶崽 Naizai · 服务器桌面宠物</span>
         <h1>把服务器状态，<br />养成一只桌面小宠物。</h1>
         <p>它不要求你看懂复杂图表。开心、冒汗、困倦或掉线，就是服务器正在发生的事。</p>
         <div className="legend"><span><i className="dot green" />健康</span><span><i className="dot amber" />忙碌</span><span><i className="dot red" />需要处理</span></div>
       </section>
 
-      <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="云崽服务器桌面宠物">
+      <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="奶崽服务器桌面宠物">
         <header className="widget-bar">
-          <div><span className="tiny-logo">●</span><b>奶龙云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
-          <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭云崽" onClick={closeWindow}>×</button></div>
+          <div><span className="tiny-logo">●</span><b>奶崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
+          <div className="window-actions"><button aria-label="收起为宠物" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭奶崽" onClick={closeWindow}>×</button></div>
         </header>
 
         <div className="pet-stage">
@@ -137,7 +137,7 @@ export default function Home() {
 
         {panel === "explore" && <section className="drawer explore-drawer">
           <div className="drawer-title"><div><small>只读资产发现</small><h2>服务器地图</h2></div><span className="status-tag map-tag">{data.projects?.length || 0} 个项目</span></div>
-          <p className="explore-intro">云崽只看名称、类型与结构，不读取代码内容、业务数据、环境变量或密钥。</p>
+          <p className="explore-intro">奶崽只看名称、类型与结构，不读取代码内容、业务数据、环境变量或密钥。</p>
 
           <div className="section-heading"><span>项目与文件</span><small>{data.inventory?.refreshSeconds || 60} 秒刷新</small></div>
           {(data.projects || []).length === 0 ? <div className="empty-map"><b>暂时没找到可读项目</b><span>正在查看 /var/www、/srv、/opt 和 /home；受权限保护的目录不会强行读取。</span></div> : (data.projects || []).map((project) => <details className="project-card" key={project.path} open={(data.projects || []).length === 1}>
@@ -151,7 +151,7 @@ export default function Home() {
           {(data.databases || []).length === 0 ? <div className="empty-map compact"><b>没有发现数据库</b><span>支持识别 PostgreSQL、MySQL、MariaDB、Redis、MongoDB 与 SQLite。</span></div> : (data.databases || []).map((database, index) => <details className="database-card" key={`${database.type}-${database.name}-${index}`} open={(database.tables?.length || 0) > 0}>
             <summary><span className="database-dot" /><span><b>{database.type}</b><small>{database.name} · {database.status}{database.port ? ` · ${database.port}` : ""}</small></span><i>⌄</i></summary>
             {database.path && <code className="database-path">{database.path}</code>}
-            {(database.tables?.length || 0) > 0 ? <div className="schema-list">{database.tables?.map((table) => <div className="schema-table" key={table.name}><b>{table.name}</b><div>{table.columns.map((column) => <span key={column.name}>{column.primary ? "◇ " : ""}{column.name}<small>{column.type || "unknown"}</small></span>)}</div></div>)}</div> : <p className="schema-locked">已识别运行服务。查看表结构需要单独配置数据库只读权限，云崽不会尝试读取密码。</p>}
+            {(database.tables?.length || 0) > 0 ? <div className="schema-list">{database.tables?.map((table) => <div className="schema-table" key={table.name}><b>{table.name}</b><div>{table.columns.map((column) => <span key={column.name}>{column.primary ? "◇ " : ""}{column.name}<small>{column.type || "unknown"}</small></span>)}</div></div>)}</div> : <p className="schema-locked">已识别运行服务。查看表结构需要单独配置数据库只读权限，奶崽不会尝试读取密码。</p>}
           </details>)}
           <div className="map-safety">隐私边界：不返回文件内容 · 自动跳过 .env / 私钥 / 证书 · SQLite 使用只读连接</div>
         </section>}

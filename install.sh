@@ -2,7 +2,7 @@
 set -eu
 
 if [ "$(uname -s)" != "Linux" ]; then
-  echo "云崽服务器端需要 Linux。macOS/Windows 请只安装 desktop 桌面宠物。"
+  echo "奶崽服务器端需要 Linux。macOS/Windows 请只安装 desktop 桌面宠物。"
   exit 1
 fi
 
@@ -83,7 +83,7 @@ if ! docker compose version >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "正在启动云崽…"
+echo "正在启动奶崽…"
 docker compose up -d --build
 
 PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
@@ -91,7 +91,7 @@ PUBLIC_IP=""
 if command -v curl >/dev/null 2>&1; then PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true); fi
 
 echo ""
-echo "✓ 云崽已经住进你的服务器"
+echo "✓ 奶崽已经住进你的服务器"
 echo "  公网访问：http://${PUBLIC_IP:-你的服务器公网IP}:6121"
 echo "  内网访问：http://${PRIVATE_IP:-服务器内网IP}:6121"
 echo ""

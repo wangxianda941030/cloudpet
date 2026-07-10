@@ -1,8 +1,8 @@
-# 云崽 Cloudy
+# 奶崽 Naizai
 
 > 把服务器状态，养成一只桌面小宠物。
 
-云崽是一个面向独立开发者和 Vibe Coding 用户的服务器桌面宠物。它把 Linux 里难读的指标，变成宠物的心情：健康时开心晃动，资源紧张时冒汗，服务器掉线时提醒你重新连接。
+奶崽是一个面向独立开发者和 Vibe Coding 用户的服务器桌面宠物。它把 Linux 里难读的指标，变成宠物的心情：健康时捧腹大笑，资源紧张时冒汗，服务器掉线时提醒你重新连接。
 
 ## 它能看什么
 
@@ -34,6 +34,10 @@ git clone https://github.com/wangxianda941030/cloudpet.git && cd cloudpet && sud
 ```
 
 原生安装器会下载并校验独立的 Node.js 22 运行时，使用系统 Python 运行只读采集器，并创建两个 systemd 服务。公网只需放行 TCP `6121`，采集器端口 `6120` 仅监听 `127.0.0.1`。安装器会自动生成访问令牌并打印完整私密地址，将整条地址粘贴到桌面宠物即可。
+
+> 品牌已经升级为“奶崽 Naizai”。为保证已经部署的用户可以无感更新，当前版本继续沿用 `/opt/cloudy`、`cloudy-agent`、`cloudy-web` 等内部标识；后续安装器会提供自动迁移，不需要手工删除旧服务。
+
+下一代安装方式规划见 [安装模式升级路线图](docs/installation-roadmap.md)。目标是把安装缩短为一次下载、一次校验和一条命令，并同时支持 GitHub、腾讯云 COS 镜像与离线安装包。
 
 如果更喜欢容器部署，仍可执行：
 
@@ -108,8 +112,8 @@ npm run dev
 
 ## 桌面宠物
 
-服务器端启动后，可以使用 `desktop/` 中的 Electron 壳将云崽固定在 macOS 或 Windows 桌面最上层。具体步骤见 `desktop/README.md`。
+服务器端启动后，可以使用 `desktop/` 中的 Electron 壳将奶崽固定在 macOS 或 Windows 桌面最上层。具体步骤见 `desktop/README.md`。
 
 ## License
 
-MIT © 2026 Cloudy contributors
+MIT © 2026 Naizai contributors
