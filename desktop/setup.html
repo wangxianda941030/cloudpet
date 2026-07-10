@@ -17,11 +17,12 @@
     <label class="label" for="server">服务器地址</label>
     <div class="input-row"><input id="server" placeholder="粘贴安装器显示的完整私密地址" autofocus /><button class="connect" id="connect">连接</button></div>
     <div class="error" id="error"></div>
-    <div class="hint">还没部署？先把项目上传 GitHub，在服务器执行 <b>sudo sh install-native.sh</b>，然后放行 TCP 6121。默认不需要 Docker。</div>
+    <div class="hint">请粘贴包含公网 IP 和 token 的完整地址。<b>10.x、172.16–31.x、192.168.x</b> 是服务器内网地址，普通家庭网络无法直接连接。</div>
     <div class="systems"><span>Ubuntu</span><span>Debian</span><span>Rocky</span><span>AlmaLinux</span><span>CentOS</span><span>TencentOS</span><span>openEuler</span></div>
   </main>
   <script>
     const input=document.getElementById('server'),error=document.getElementById('error'),button=document.getElementById('connect');
+    const params=new URLSearchParams(location.search);input.value=params.get('server')||'';error.textContent=params.get('error')||'';
     async function connect(){error.textContent='正在找云崽…';button.disabled=true;const result=await window.cloudy.connect(input.value);if(!result.ok){error.textContent=result.message;button.disabled=false}}
     button.addEventListener('click',connect);input.addEventListener('keydown',(event)=>{if(event.key==='Enter')connect()});document.getElementById('close').addEventListener('click',()=>window.cloudy.close());
   </script>

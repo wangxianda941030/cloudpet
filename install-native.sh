@@ -117,8 +117,8 @@ PRIVATE_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 PUBLIC_IP=$(curl -4 -fsS --max-time 3 https://api.ipify.org 2>/dev/null || true)
 echo ""
 echo "✓ 云崽已通过原生模式启动（无 Docker）"
-echo "  公网访问：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
-echo "  内网访问：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
+echo "  桌面端请填写：http://${PUBLIC_IP:-你的服务器公网IP}:6121/?token=$ACCESS_TOKEN"
+echo "  仅同一腾讯云内网可用：http://${PRIVATE_IP:-服务器内网IP}:6121/?token=$ACCESS_TOKEN"
 echo ""
 echo "腾讯云防火墙/安全组只需放行 TCP 6121；采集器 6120 仅监听本机。请勿公开上面的私密访问地址。"
 echo "查看状态：systemctl status cloudy-agent cloudy-web"

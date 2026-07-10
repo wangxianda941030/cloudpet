@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { app, BrowserWindow, ipcMain, screen } = require("electron");
+const { app, BrowserWindow, ipcMain, screen, net } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -24,11 +24,52 @@ function saveTarget(serverUrl) {
   fs.mkdirSync(path.dirname(configPath()), { recursive: true });
   fs.writeFileSync(configPath(), JSON.stringify({ serverUrl }, null, 2));
 }
+function clearSavedTarget() {
+  try { fs.unlinkSync(configPath()); }
+  catch { /* nothing saved yet */ }
+}
 
-function openTarget(value) {
+function isPrivateHost(hostname) {
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
+  if (/^10\./.test(hostname) || /^192\.168\./.test(hostname)) return true;
+  const match = hostname.match(/^172\.(\d+)\./);
+  return Boolean(match && Number(match[1]) >= 16 && Number(match[1]) <= 31);
+}
+
+async function verifyTarget(target) {
+  const pageUrl = new URL(target);
+  const healthUrl = new URL("/api/metrics", pageUrl);
+  const token = pageUrl.searchParams.get("token");
+  if (token) healthUrl.searchParams.set("token", token);
+
+  let response;
+  try {
+    response = await net.fetch(healthUrl.toString(), {
+      method: "GET",
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    if (isPrivateHost(pageUrl.hostname)) {
+      throw new Error("这是服务器内网地址，当前电脑访问不到。请改用安装器显示的公网地址，并在腾讯云放行 TCP 6121。");
+    }
+    throw new Error("连接不到服务器。请检查公网 IP、TCP 6121 防火墙和服务运行状态。");
+  }
+  if (response.status === 401) throw new Error("访问令牌不正确，请粘贴安装器显示的完整私密地址。");
+  if (!response.ok) throw new Error(`服务器返回 ${response.status}，请运行 systemctl status cloudy-agent cloudy-web 检查服务。`);
+}
+
+async function openTarget(value) {
   const target = normalizeTarget(value);
+  await verifyTarget(target);
+  await mainWindow.loadURL(target);
   saveTarget(target.replace(/[?&]widget=1/, ""));
-  return mainWindow.loadURL(target);
+}
+
+function showSetup(message = "", serverUrl = "") {
+  return mainWindow.loadFile(path.join(__dirname, "setup.html"), {
+    query: { error: message, server: serverUrl },
+  });
 }
 
 function createWindow() {
@@ -48,8 +89,11 @@ function createWindow() {
 
   const argumentUrl = process.argv.find((value) => /^https?:\/\//.test(value));
   const target = argumentUrl || process.env.CLOUDY_SERVER_URL || readSavedTarget();
-  if (target) openTarget(target).catch(() => mainWindow.loadFile(path.join(__dirname, "setup.html")));
-  else mainWindow.loadFile(path.join(__dirname, "setup.html"));
+  if (target) openTarget(target).catch((error) => {
+    clearSavedTarget();
+    showSetup(error instanceof Error ? error.message : "连接失败", target);
+  });
+  else showSetup();
   mainWindow.setAlwaysOnTop(true, "floating");
 }
 
