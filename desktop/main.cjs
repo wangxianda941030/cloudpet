@@ -101,6 +101,7 @@ ipcMain.handle("cloudy:connect", async (_event, value) => {
   try { await openTarget(value); return { ok: true }; }
   catch (error) { return { ok: false, message: error instanceof Error ? error.message : "无法连接" }; }
 });
+ipcMain.on("cloudy:minimize", () => mainWindow?.minimize());
 ipcMain.on("cloudy:close", () => mainWindow?.close());
 
 app.whenReady().then(() => {
