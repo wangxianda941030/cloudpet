@@ -8,8 +8,8 @@ services:
     restart: unless-stopped
     pid: host
     environment:
-      CLOUDMIRROR_PROC: /host/proc
-      CLOUDMIRROR_ROOT: /host/root
+      CLOUDY_PROC: /host/proc
+      CLOUDY_ROOT: /host/root
     volumes:
       - /proc:/host/proc:ro
       - /:/host/root:ro

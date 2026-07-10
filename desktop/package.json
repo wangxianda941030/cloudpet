@@ -1,0 +1,12 @@
+{
+  "name": "cloudy-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "43.1.0"
+  }
+}

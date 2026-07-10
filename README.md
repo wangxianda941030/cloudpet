@@ -1,8 +1,8 @@
-# 云镜 CloudMirror
+# 云崽 Cloudy
 
-> 像照镜子一样，看懂自己的服务器。
+> 把服务器状态，养成一只桌面小宠物。
 
-云镜是一个面向独立开发者和 Vibe Coding 用户的轻量服务器可视化面板。它把 Ubuntu 里难读的命令输出，变成一个干净、中文、能解释当前状态的浏览器仪表盘。
+云崽是一个面向独立开发者和 Vibe Coding 用户的服务器桌面宠物。它把 Ubuntu 里难读的指标，变成宠物的心情：健康时开心晃动，资源紧张时冒汗，服务器掉线时提醒你重新连接。
 
 ## 它能看什么
 
@@ -20,8 +20,8 @@
 要求：Ubuntu 20.04+、Docker Engine 与 Docker Compose 插件。
 
 ```bash
-git clone https://github.com/your-name/cloudmirror.git
-cd cloudmirror
+git clone https://github.com/your-name/cloudy.git
+cd cloudy
 sh install.sh
 ```
 
@@ -75,6 +75,10 @@ npm run dev
 
 欢迎提交 Issue 和 Pull Request。这个项目尤其欢迎第一次参与开源的朋友。
 
+## 桌面宠物
+
+服务器端启动后，可以使用 `desktop/` 中的 Electron 壳将云崽固定在 macOS 或 Windows 桌面最上层。具体步骤见 `desktop/README.md`。
+
 ## License
 
-MIT © 2026 CloudMirror contributors
+MIT © 2026 Cloudy contributors

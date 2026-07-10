@@ -3,126 +3,126 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Metric = {
-  meta: { hostname: string; os: string; kernel: string; uptime: number; updatedAt: string };
-  cpu: { usage: number; cores: number; load: number[]; temperature?: number | null };
-  memory: { total: number; used: number; percent: number; swapPercent: number };
+  meta: { hostname: string; os: string; uptime: number; updatedAt: string };
+  cpu: { usage: number; cores: number; load: number[] };
+  memory: { total: number; used: number; percent: number };
   disk: { total: number; used: number; percent: number };
   network: { rx: number; tx: number; connections: number };
-  processes: Array<{ name: string; pid: number; cpu: number; memory: number; status: string }>;
-  containers: Array<{ name: string; image: string; status: string; state: string; ports: string }>;
-  databases: Array<{ name: string; type: string; status: string; port: string }>;
+  containers: Array<{ name: string; state: string }>;
+  databases: Array<{ name: string; type: string; status: string }>;
 };
 
 const demo: Metric = {
-  meta: { hostname: "ubuntu-tencent-01", os: "Ubuntu 24.04 LTS", kernel: "6.8.0-31", uptime: 1283400, updatedAt: new Date().toISOString() },
-  cpu: { usage: 23.8, cores: 4, load: [0.72, 0.61, 0.58], temperature: 46 },
-  memory: { total: 8 * 1024 ** 3, used: 4.1 * 1024 ** 3, percent: 51.2, swapPercent: 4.1 },
+  meta: { hostname: "ubuntu-tencent-01", os: "Ubuntu 24.04 LTS", uptime: 1283400, updatedAt: new Date().toISOString() },
+  cpu: { usage: 23.8, cores: 4, load: [0.72, 0.61, 0.58] },
+  memory: { total: 8 * 1024 ** 3, used: 4.1 * 1024 ** 3, percent: 51.2 },
   disk: { total: 80 * 1024 ** 3, used: 36.2 * 1024 ** 3, percent: 45.3 },
   network: { rx: 3.8 * 1024 ** 2, tx: 1.2 * 1024 ** 2, connections: 128 },
-  processes: [
-    { name: "node", pid: 2184, cpu: 12.4, memory: 8.2, status: "运行中" },
-    { name: "mysqld", pid: 1260, cpu: 5.8, memory: 14.6, status: "运行中" },
-    { name: "nginx", pid: 891, cpu: 2.1, memory: 1.2, status: "运行中" },
-    { name: "redis-server", pid: 1422, cpu: 1.4, memory: 2.8, status: "运行中" },
-  ],
-  containers: [
-    { name: "blog-web", image: "ghcr.io/blog/web:latest", status: "Up 18 days", state: "running", ports: "3000 → 3000" },
-    { name: "mysql", image: "mysql:8.4", status: "Up 18 days (healthy)", state: "running", ports: "3306" },
-    { name: "redis", image: "redis:7-alpine", status: "Up 18 days", state: "running", ports: "6379" },
-  ],
-  databases: [
-    { name: "mysql", type: "MySQL 8.4", status: "健康", port: "3306" },
-    { name: "redis", type: "Redis 7", status: "健康", port: "6379" },
-  ],
+  containers: [{ name: "blog-web", state: "running" }, { name: "mysql", state: "running" }, { name: "redis", state: "running" }],
+  databases: [{ name: "mysql", type: "MySQL 8.4", status: "健康" }, { name: "redis", type: "Redis 7", status: "健康" }],
 };
 
-const historySeed = [18, 22, 19, 34, 28, 31, 25, 22, 36, 31, 27, 24, 29, 23, 21, 26, 24, 23];
 const gb = (n: number) => `${(n / 1024 ** 3).toFixed(1)} GB`;
-const speed = (n: number) => n > 1024 ** 2 ? `${(n / 1024 ** 2).toFixed(1)} MB/s` : `${(n / 1024).toFixed(0)} KB/s`;
 const uptime = (seconds: number) => `${Math.floor(seconds / 86400)} 天 ${Math.floor((seconds % 86400) / 3600)} 小时`;
 
-function Gauge({ value, color = "lime" }: { value: number; color?: "lime" | "violet" | "cyan" }) {
-  return <div className={`gauge ${color}`} style={{ "--value": `${Math.min(100, Math.max(0, value)) * 3.6}deg` } as React.CSSProperties}><div><strong>{value.toFixed(0)}</strong><span>%</span></div></div>;
+function Meter({ label, value, detail, tone }: { label: string; value: number; detail: string; tone: string }) {
+  return <div className="meter"><div><span>{label}</span><b>{value.toFixed(0)}%</b></div><div className="meter-track"><i className={tone} style={{ width: `${Math.min(100, value)}%` }} /></div><small>{detail}</small></div>;
 }
-
-function Bars({ values, color = "lime" }: { values: number[]; color?: string }) {
-  return <div className="bars" aria-label="最近性能趋势">{values.map((v, i) => <i key={i} className={color} style={{ height: `${Math.max(12, v)}%` }} />)}</div>;
-}
-
-function Dot({ ok = true }: { ok?: boolean }) { return <i className={`status-dot ${ok ? "ok" : "warn"}`} />; }
 
 export default function Home() {
   const [data, setData] = useState<Metric>(demo);
   const [live, setLive] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState("概览");
-  const [history, setHistory] = useState(historySeed);
+  const [panel, setPanel] = useState<"closed" | "stats" | "setup">("closed");
+  const [copied, setCopied] = useState("");
+  const [widgetMode, setWidgetMode] = useState(false);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setWidgetMode(new URLSearchParams(window.location.search).has("widget")));
     let mounted = true;
     const load = async () => {
       try {
         const response = await fetch("/api/metrics", { cache: "no-store" });
-        if (!response.ok) throw new Error("collector unavailable");
+        if (!response.ok) throw new Error("offline");
         const next = await response.json() as Metric;
-        if (mounted) { setData(next); setLive(true); setHistory((old) => [...old.slice(1), Math.round(next.cpu.usage)]); }
+        if (mounted) { setData(next); setLive(true); }
       } catch { if (mounted) setLive(false); }
       finally { if (mounted) setLoading(false); }
     };
     load();
-    const timer = setInterval(load, 5000);
-    return () => { mounted = false; clearInterval(timer); };
+    const timer = window.setInterval(load, 5000);
+    return () => { mounted = false; window.cancelAnimationFrame(frame); window.clearInterval(timer); };
   }, []);
 
-  const health = useMemo(() => {
+  const mood = useMemo(() => {
+    if (!live) return { id: "offline", title: loading ? "我在找服务器…" : "还没牵上线呢", message: loading ? "稍等我闻一闻网络。" : "连接 Ubuntu 后，我就能替你守着它。", face: "· ᴗ ·" };
     const max = Math.max(data.cpu.usage, data.memory.percent, data.disk.percent);
-    return max > 90 ? { label: "需要处理", note: "有资源即将耗尽", ok: false } : max > 75 ? { label: "需要关注", note: "资源使用率偏高", ok: false } : { label: "一切正常", note: "所有核心服务运行稳定", ok: true };
-  }, [data]);
+    if (max >= 90) return { id: "danger", title: "主人，快看这里！", message: "有一项资源快用完了，我有点担心。", face: "> ︿ <" };
+    if (max >= 75) return { id: "busy", title: "今天有点忙呀", message: "服务器正在努力工作，我会继续盯着。", face: "• ︵ •" };
+    return { id: "happy", title: "一切都软乎乎的", message: `你的服务器已平稳运行 ${uptime(data.meta.uptime)}。`, face: "• ᴗ •" };
+  }, [data, live, loading]);
 
-  const sections = ["概览", "性能", "存储", "网络", "Docker", "数据库", "进程"];
+  const copy = async (id: string, value: string) => {
+    try { await navigator.clipboard.writeText(value); }
+    catch {
+      const input = document.createElement("textarea"); input.value = value; input.style.position = "fixed"; input.style.opacity = "0";
+      document.body.appendChild(input); input.select(); document.execCommand("copy"); input.remove();
+    }
+    setCopied(id); window.setTimeout(() => setCopied(""), 1600);
+  };
 
   return (
-    <main className="shell">
-      <aside className="sidebar">
-        <div className="brand"><span className="brand-mark">C</span><div><b>云镜</b><small>CLOUDMIRROR</small></div></div>
-        <nav>{sections.map((item, i) => <button key={item} onClick={() => setActive(item)} className={active === item ? "active" : ""}><span>{["◫", "⌁", "▰", "↗", "◇", "◉", "≡"][i]}</span>{item}</button>)}</nav>
-        <div className="sidebar-bottom"><button><span>⚙</span>设置</button><a href="https://github.com" target="_blank" rel="noreferrer"><span>↗</span>GitHub</a></div>
-      </aside>
+    <main suppressHydrationWarning className={`desktop-scene ${widgetMode ? "widget-mode" : ""}`}>
+      <div className="wallpaper-orb orb-one" /><div className="wallpaper-orb orb-two" />
+      <section className="concept-copy">
+        <span className="concept-pill">云崽 Cloudy · 桌面宠物原型</span>
+        <h1>把服务器状态，<br />养成一只桌面小宠物。</h1>
+        <p>它不要求你看懂复杂图表。开心、冒汗、困倦或掉线，就是服务器正在发生的事。</p>
+        <div className="legend"><span><i className="dot green" />健康</span><span><i className="dot amber" />忙碌</span><span><i className="dot red" />需要处理</span></div>
+      </section>
 
-      <section className="workspace">
-        <header>
-          <div className="mobile-brand"><span className="brand-mark">C</span><b>云镜</b></div>
-          <div className="server-title"><span className="server-icon">▰</span><div><h1>{data.meta.hostname}</h1><p><Dot />{live ? "实时连接" : "演示数据"} <em>·</em> {data.meta.os}</p></div></div>
-          <div className="header-actions"><span className="refresh">{loading ? "同步中" : "每 5 秒刷新"}</span><button aria-label="通知">♢<i>2</i></button><div className="avatar">BW</div></div>
+      <section className={`pet-widget ${mood.id} ${panel !== "closed" ? "expanded" : ""}`} aria-label="云崽服务器桌面宠物">
+        <header className="widget-bar">
+          <div><span className="tiny-logo">☁</span><b>云崽</b><small>{live ? data.meta.hostname : "演示模式"}</small></div>
+          <div className="window-actions"><button aria-label="收起" onClick={() => setPanel("closed")}>—</button><button aria-label="关闭面板" onClick={() => setPanel("closed")}>×</button></div>
         </header>
 
-        <div className="content">
-          <section className={`health-banner ${health.ok ? "" : "attention"}`}>
-            <div className="health-icon">{health.ok ? "✓" : "!"}</div>
-            <div><h2>{health.label}</h2><p>{health.note}，服务器已连续运行 {uptime(data.meta.uptime)}</p></div>
-            <span>上次检查：刚刚</span>
-          </section>
-
-          <section className="metrics-grid">
-            <article className="metric-card"><div className="metric-top"><div><label>CPU 使用率</label><h3>{data.cpu.usage.toFixed(1)}<small>%</small></h3></div><Gauge value={data.cpu.usage} /></div><div className="metric-foot"><span>{data.cpu.cores} 核心</span><span>负载 {data.cpu.load[0].toFixed(2)}</span>{data.cpu.temperature && <span>{data.cpu.temperature}°C</span>}</div></article>
-            <article className="metric-card"><div className="metric-top"><div><label>内存</label><h3>{data.memory.percent.toFixed(1)}<small>%</small></h3></div><Gauge value={data.memory.percent} color="violet" /></div><div className="progress violet"><i style={{ width: `${data.memory.percent}%` }} /></div><div className="metric-foot"><span>{gb(data.memory.used)} / {gb(data.memory.total)}</span><span>Swap {data.memory.swapPercent.toFixed(0)}%</span></div></article>
-            <article className="metric-card"><div className="metric-top"><div><label>磁盘空间</label><h3>{data.disk.percent.toFixed(1)}<small>%</small></h3></div><Gauge value={data.disk.percent} color="cyan" /></div><div className="progress cyan"><i style={{ width: `${data.disk.percent}%` }} /></div><div className="metric-foot"><span>{gb(data.disk.used)} / {gb(data.disk.total)}</span><span>剩余 {gb(data.disk.total - data.disk.used)}</span></div></article>
-          </section>
-
-          <section className="middle-grid">
-            <article className="panel performance"><div className="panel-heading"><div><p className="eyebrow">实时性能</p><h2>服务器呼吸很平稳</h2></div><span className="live-pill"><Dot /> LIVE</span></div><div className="chart-labels"><div><strong>{data.cpu.usage.toFixed(1)}%</strong><span>CPU</span></div><div><strong>{data.memory.percent.toFixed(1)}%</strong><span>内存</span></div></div><Bars values={history} /><div className="chart-axis"><span>90 秒前</span><span>现在</span></div></article>
-            <article className="panel network"><div className="panel-heading"><div><p className="eyebrow">网络流量</p><h2>出入站速度</h2></div><span>连接数 {data.network.connections}</span></div><div className="network-values"><div><i className="down">↓</i><span>下载<strong>{speed(data.network.rx)}</strong></span></div><div><i className="up">↑</i><span>上传<strong>{speed(data.network.tx)}</strong></span></div></div><div className="network-wave"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div></article>
-          </section>
-
-          <section className="bottom-grid">
-            <article className="panel"><div className="panel-heading"><div><p className="eyebrow">服务状态</p><h2>Docker 容器</h2></div><button onClick={() => setActive("Docker")}>查看全部 →</button></div><div className="service-list">{data.containers.slice(0, 4).map((item) => <div className="service" key={item.name}><span className="service-logo">{item.name.slice(0, 2).toUpperCase()}</span><div><strong>{item.name}</strong><small>{item.image}</small></div><span className="port">{item.ports || "—"}</span><span className="healthy"><Dot ok={item.state === "running"} />{item.state === "running" ? "运行中" : item.state}</span></div>)}</div></article>
-            <article className="panel"><div className="panel-heading"><div><p className="eyebrow">数据服务</p><h2>数据库</h2></div><button onClick={() => setActive("数据库")}>管理 →</button></div><div className="database-list">{data.databases.length ? data.databases.map((db) => <div className="database" key={db.name}><span className={`db-logo ${db.type.toLowerCase().includes("redis") ? "redis" : ""}`}>DB</span><div><strong>{db.name}</strong><small>{db.type} · 端口 {db.port}</small></div><span className="healthy"><Dot ok={db.status === "健康" || db.status === "running"} />{db.status}</span></div>) : <div className="empty">暂未检测到数据库容器</div>}</div><div className="tip"><span>i</span><p><b>安全提示</b>云镜只读取运行状态，不会读取数据库中的业务数据。</p></div></article>
-          </section>
-
-          <section className="panel process-panel"><div className="panel-heading"><div><p className="eyebrow">资源排行</p><h2>最忙的进程</h2></div><button onClick={() => setActive("进程")}>查看全部 →</button></div><div className="process-table"><div className="process-row process-head"><span>进程</span><span>PID</span><span>CPU</span><span>内存</span><span>状态</span></div>{data.processes.slice(0, 5).map((p) => <div className="process-row" key={`${p.pid}-${p.name}`}><strong>{p.name}</strong><span>{p.pid}</span><span>{p.cpu.toFixed(1)}%</span><span>{p.memory.toFixed(1)}%</span><span className="healthy"><Dot />{p.status}</span></div>)}</div></section>
+        <div className="pet-stage">
+          <div className="speech"><b>{mood.title}</b><span>{mood.message}</span></div>
+          <button className="pet" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")} aria-label="点击云崽查看服务器状态">
+            <i className="ear left" /><i className="ear right" />
+            <div className="cloud-puff puff-one" /><div className="cloud-puff puff-two" /><div className="cloud-puff puff-three" />
+            <div className="pet-body"><span className="face">{mood.face}</span><i className="blush left" /><i className="blush right" />{mood.id === "busy" && <i className="sweat">◜</i>}{mood.id === "danger" && <i className="alert">!</i>}</div>
+            <i className="foot left" /><i className="foot right" />
+          </button>
+          <div className="quick-stats"><span><b>{data.cpu.usage.toFixed(0)}%</b> CPU</span><span><b>{data.memory.percent.toFixed(0)}%</b> 内存</span><span><b>{data.disk.percent.toFixed(0)}%</b> 磁盘</span></div>
         </div>
-        <footer><span>云镜 v0.1.0 · 开源、自托管、数据不出服务器</span><span suppressHydrationWarning>{data.meta.kernel} · {new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN")}</span></footer>
+
+        <div className="widget-buttons"><button className="primary" onClick={() => setPanel(panel === "stats" ? "closed" : "stats")}>{panel === "stats" ? "收起状态" : "看看它在忙什么"}</button><button className="ghost" onClick={() => setPanel(panel === "setup" ? "closed" : "setup")}>{live ? "接入说明" : "怎么连接服务器"}</button></div>
+
+        {panel === "stats" && <section className="drawer stats-drawer">
+          <div className="drawer-title"><div><small>实时状态</small><h2>{data.meta.hostname}</h2></div><span className={live ? "status-tag online" : "status-tag"}>{live ? "每 5 秒更新" : "演示数据"}</span></div>
+          <Meter label="CPU" value={data.cpu.usage} detail={`${data.cpu.cores} 核 · 负载 ${data.cpu.load[0].toFixed(2)}`} tone="blue" />
+          <Meter label="内存" value={data.memory.percent} detail={`${gb(data.memory.used)} / ${gb(data.memory.total)}`} tone="yellow" />
+          <Meter label="磁盘" value={data.disk.percent} detail={`${gb(data.disk.total - data.disk.used)} 可用`} tone="pink" />
+          <div className="service-chips"><span>◇ {data.containers.filter((x) => x.state === "running").length} 个容器</span><span>● {data.databases.length} 个数据库</span><span>↗ {data.network.connections} 个连接</span></div>
+        </section>}
+
+        {panel === "setup" && <section className="drawer setup-drawer">
+          <div className="drawer-title"><div><small>第一次见面</small><h2>把云崽牵到服务器</h2></div><span className="status-tag">Ubuntu</span></div>
+          <p className="setup-intro">云崽和采集器一起运行在你的服务器上，不需要把 SSH、数据库密码或云密钥交给网页。</p>
+          <ol>
+            <li><span>1</span><div><b>把项目放进服务器</b><p>上传 GitHub 后，在腾讯云终端执行：</p><div className="command"><code>git clone 你的仓库地址 cloudpet && cd cloudpet</code><button onClick={() => copy("clone", "git clone 你的仓库地址 cloudpet && cd cloudpet")}>{copied === "clone" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>2</span><div><b>启动采集器</b><p>需要服务器已安装 Docker 与 Compose。</p><div className="command"><code>sh install.sh</code><button onClick={() => copy("install", "sh install.sh")}>{copied === "install" ? "好啦" : "复制"}</button></div></div></li>
+            <li><span>3</span><div><b>打开桌面宠物</b><p>腾讯云防火墙放行 TCP 6121 后访问：</p><div className="command"><code>http://服务器公网IP:6121</code><button onClick={() => copy("url", "http://服务器公网IP:6121")}>{copied === "url" ? "好啦" : "复制"}</button></div></div></li>
+          </ol>
+          <div className="privacy-note">🔒 只读取系统状态，不读取数据库业务内容。</div>
+        </section>}
+
+        <footer className="widget-footer"><span className={live ? "connection live" : "connection"}><i />{live ? "已连接真实服务器" : "未连接 · 正在展示示例"}</span><span suppressHydrationWarning>{new Date(data.meta.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span></footer>
       </section>
+
+      <div className="desktop-note"><span>下一步</span><p>把这个透明小窗用 Electron/Tauri 打包后，就能固定在 Windows 或 macOS 桌面最上层。</p></div>
     </main>
   );
 }
